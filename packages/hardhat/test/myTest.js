@@ -59,7 +59,10 @@ describe("My Dapp", function () {
 
       it("Existing signer can add new signer to contract", async () => {
         signerContract = await myContract.connect(member);
-        await signerContract.addSigner(notMember);
+
+        await expect(signerContract.addSigner(notMember))
+          .to.emit(signerContract, "SignerAdded")
+          .withArgs(notMember);
 
         expect(await signerContract.s_isSigner(notMember)).to.equal(true);
 
