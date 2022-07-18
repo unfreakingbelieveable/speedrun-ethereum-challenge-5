@@ -54,9 +54,13 @@ describe("My Dapp", function () {
         await expect(myContract.addSigner(notMember)).to.be.reverted;
       });
 
-      it("Signer can add signer to contract", async () => {
+      it("Existing signer can add new signer to contract", async () => {
         const tempContract = await myContract.connect(member);
         await tempContract.addSigner(notMember);
+
+        expect(await tempContract.s_isSigner(notMember)).to.equal(true);
+
+        expect(await tempContract.s_signers(3)).to.equal(notMember);
       });
     });
   });
