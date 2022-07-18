@@ -29,6 +29,10 @@ describe("My Dapp", function () {
         for (i = 0; i < members.length; i++) {
           expect(await myContract.s_signers(i)).to.equal(members[i]);
         }
+
+        // Ensure there's no extra members added
+        i += 1;
+        await expect(myContract.s_signers(i)).to.be.reverted;
       });
 
       it("Should have updated signers mapping properly", async () => {
@@ -41,8 +45,8 @@ describe("My Dapp", function () {
     });
 
     describe("AddSigner()", () => {
-      it("Adds signer to signers array", async () => {
-        console.log("");
+      it("Non-signer cannot add signer to contract", async () => {
+        await expect(myContract.addSigner(notMember)).to.be.reverted;
       });
     });
   });
