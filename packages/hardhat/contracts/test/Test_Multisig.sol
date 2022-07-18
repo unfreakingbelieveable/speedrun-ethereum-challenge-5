@@ -10,6 +10,14 @@ contract Test_Multisig is Multisig {
         return s_signers;
     }
 
+    function test_findIndexOfSigner(address _signer)
+        public
+        view
+        returns (uint256)
+    {
+        return findIndexOfSigner(_signer);
+    }
+
     function test_removeFromSignersArray(uint256 _index, address _signer)
         public
     {

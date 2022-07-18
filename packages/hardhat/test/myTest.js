@@ -78,9 +78,9 @@ describe("My Dapp", function () {
 
     describe("findIndexOfSigner()", () => {
       it("Finds correct index of signer in signer's array", async () => {
-        expect(await myContract.findIndexOfSigner(members[0])).to.equal(0);
-        expect(await myContract.findIndexOfSigner(members[1])).to.equal(1);
-        expect(await myContract.findIndexOfSigner(members[2])).to.equal(2);
+        expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
+        expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
+        expect(await myContract.test_findIndexOfSigner(members[2])).to.equal(2);
       });
     });
 

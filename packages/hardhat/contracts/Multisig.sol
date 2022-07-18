@@ -57,16 +57,16 @@ contract Multisig {
     // ---------------------------------------------------------------
     // Array operations Helper methods
     // ---------------------------------------------------------------
-    function findIndexOfSigner(address signer)
-        public
+    function findIndexOfSigner(address _signer)
+        internal
         view
         returns (uint256 index)
     {
-        if (!s_isSigner[signer]) {
+        if (!s_isSigner[_signer]) {
             revert Multisig__UserIsNotSigner();
         }
         for (uint256 i = 0; i < s_signers.length; i++) {
-            if (s_signers[i] == signer) {
+            if (s_signers[i] == _signer) {
                 index = i;
                 break;
             }
