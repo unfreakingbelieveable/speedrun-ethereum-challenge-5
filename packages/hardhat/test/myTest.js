@@ -10,6 +10,7 @@ const notMember = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 
 describe("My Dapp", function () {
   let myContract;
+  let member;
 
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
   before((done) => {
@@ -20,6 +21,10 @@ describe("My Dapp", function () {
     it("Should deploy Multisig", async function () {
       const Multisig = await ethers.getContractFactory("Multisig");
 
+      member = (await ethers.getSigners())[1];
+      members.push(member.address.toString());
+
+      // imported members PLUS the second signer address
       myContract = await Multisig.deploy(members);
     });
 
@@ -47,6 +52,11 @@ describe("My Dapp", function () {
     describe("AddSigner()", () => {
       it("Non-signer cannot add signer to contract", async () => {
         await expect(myContract.addSigner(notMember)).to.be.reverted;
+      });
+
+      it("Signer can add signer to contract", async () => {
+        const tempContract = await myContract.connect(member);
+        await tempContract.addSigner(notMember);
       });
     });
   });
