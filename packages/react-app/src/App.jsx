@@ -320,7 +320,7 @@ function App(props) {
             */}
 
           <Contract
-            name="YourContract"
+            name="Multisig"
             price={price}
             signer={userSigner}
             provider={localProvider}

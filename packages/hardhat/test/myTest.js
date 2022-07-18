@@ -1,8 +1,12 @@
 const { ethers } = require("hardhat");
 const { use, expect } = require("chai");
 const { solidity } = require("ethereum-waffle");
+const { members } = require("../hardhat-helper-config");
 
 use(solidity);
+
+// FYI - This is the WETH addr on mainnet
+const notMember = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 
 describe("My Dapp", function () {
   let myContract;
@@ -12,29 +16,33 @@ describe("My Dapp", function () {
     setTimeout(done, 2000);
   });
 
-  describe("YourContract", function () {
-    it("Should deploy YourContract", async function () {
-      const YourContract = await ethers.getContractFactory("YourContract");
+  describe("Multisig", function () {
+    it("Should deploy Multisig", async function () {
+      const Multisig = await ethers.getContractFactory("Multisig");
 
-      myContract = await YourContract.deploy();
+      myContract = await Multisig.deploy(members);
     });
 
-    describe("setPurpose()", function () {
-      it("Should be able to set a new purpose", async function () {
-        const newPurpose = "Test Purpose";
-
-        await myContract.setPurpose(newPurpose);
-        expect(await myContract.purpose()).to.equal(newPurpose);
+    describe("Constructor()", function () {
+      it("Should have saved signers to array properly", async function () {
+        let i;
+        for (i = 0; i < members.length; i++) {
+          expect(await myContract.s_signers(i)).to.equal(members[i]);
+        }
       });
 
-      it("Should emit a SetPurpose event ", async function () {
-        const [owner] = await ethers.getSigners();
+      it("Should have updated signers mapping properly", async () => {
+        members.forEach(async (member) => {
+          expect(await myContract.s_isSigner(member)).to.equal(true);
+        });
 
-        const newPurpose = "Another Test Purpose";
+        expect(await myContract.s_isSigner(notMember)).to.equal(false);
+      });
+    });
 
-        expect(await myContract.setPurpose(newPurpose))
-          .to.emit(myContract, "SetPurpose")
-          .withArgs(owner.address, newPurpose);
+    describe("AddSigner()", () => {
+      it("Adds signer to signers array", async () => {
+        console.log("");
       });
     });
   });

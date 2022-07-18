@@ -1,6 +1,7 @@
 // deploy/00_deploy_your_contract.js
 
 const { ethers } = require("hardhat");
+const { members } = require("../hardhat-helper-config");
 
 const localChainId = "31337";
 
@@ -17,26 +18,26 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
 
-  await deploy("YourContract", {
+  await deploy("Multisig", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
-    // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+    args: [members],
     log: true,
     waitConfirmations: 5,
   });
 
   // Getting a previously deployed contract
-  const YourContract = await ethers.getContract("YourContract", deployer);
-  /*  await YourContract.setPurpose("Hello");
+  const Multisig = await ethers.getContract("Multisig", deployer);
+  /*  await Multisig.setPurpose("Hello");
   
-    // To take ownership of yourContract using the ownable library uncomment next line and add the 
+    // To take ownership of Multisig using the ownable library uncomment next line and add the 
     // address you want to be the owner. 
     
-    await YourContract.transferOwnership(
+    await Multisig.transferOwnership(
       "ADDRESS_HERE"
     );
 
-    //const YourContract = await ethers.getContractAt('YourContract', "0xaAC799eC2d00C013f1F11c37E654e59B0429DF6A") //<-- if you want to instantiate a version of a contract at a specific address!
+    //const Multisig = await ethers.getContractAt('Multisig', "0xaAC799eC2d00C013f1F11c37E654e59B0429DF6A") //<-- if you want to instantiate a version of a contract at a specific address!
   */
 
   /*
@@ -50,7 +51,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   /*
   //If you want to send some ETH to a contract on deploy (make your constructor payable!)
-  const yourContract = await deploy("YourContract", [], {
+  const Multisig = await deploy("Multisig", [], {
   value: ethers.utils.parseEther("0.05")
   });
   */
@@ -58,7 +59,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   /*
   //If you want to link a library into your contract:
   // reference: https://github.com/austintgriffith/scaffold-eth/blob/using-libraries-example/packages/hardhat/scripts/deploy.js#L19
-  const yourContract = await deploy("YourContract", [], {}, {
+  const Multisig = await deploy("Multisig", [], {}, {
    LibraryName: **LibraryAddress**
   });
   */
@@ -70,8 +71,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // try {
   //   if (chainId !== localChainId) {
   //     await run("verify:verify", {
-  //       address: YourContract.address,
-  //       contract: "contracts/YourContract.sol:YourContract",
+  //       address: Multisig.address,
+  //       contract: "contracts/Multisig.sol:Multisig",
   //       constructorArguments: [],
   //     });
   //   }
@@ -79,4 +80,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   //   console.error(error);
   // }
 };
-module.exports.tags = ["YourContract"];
+module.exports.tags = ["Multisig"];
