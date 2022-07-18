@@ -20,7 +20,7 @@ describe("My Dapp", function () {
 
   describe("Multisig", function () {
     it("Should deploy Multisig", async function () {
-      const Multisig = await ethers.getContractFactory("Multisig");
+      const Multisig = await ethers.getContractFactory("Test_Multisig");
 
       member = (await ethers.getSigners())[1];
       members.push(member.address.toString());
@@ -86,11 +86,14 @@ describe("My Dapp", function () {
 
     describe("removeFromSignersArray()", () => {
       it("Removes correct index in signer's array", async () => {
-        let lastSigner = await signerContract.s_signers(3);
-        await signerContract.removeFromSignersArray(0);
-        let newFirstSigner = await signerContract.s_signers(0);
+        await signerContract.test_removeFromSignersArray(3, notMember);
 
-        expect(newFirstSigner).to.be.equal(lastSigner);
+        for (let i = 0; i < members.length; i++) {
+          expect(await signerContract.s_signers(i)).to.equal(members[i]);
+        }
+
+        // Undo this test for later tests
+        await signerContract.addSigner(notMember);
       });
     });
 
@@ -108,24 +111,16 @@ describe("My Dapp", function () {
 
         expect(await signerContract.s_isSigner(notMember)).to.equal(false);
 
-        let temp = await signerContract.getSigners();
-        console.log(temp);
-        // members.forEach(async (member) => {
-        //   expect(await signerContract.s_isSigner(member)).to.equal(true);
-        //   let temp = await signerContract.findIndexOfSigner(member);
-        //   console.log(`Member: ${member}, Index: ${temp}`);
-        // });
-        // expect(await signerContract.s_signers(2)).to.equal(member);
-
-        // Ensure the array got resized
-        await expect(signerContract.s_signers(2)).to.be.reverted;
+        expect((await signerContract.test_getSigners()).toString()).to.equal(
+          members.toString()
+        );
       });
 
-      // it("Should fail adding existing signer", async () => {
-      //   await expect(signerContract.addSigner(notMember)).to.be.revertedWith(
-      //     "Multisig__UserAlreadySigner"
-      //   );
-      // });
+      it("Should fail adding existing signer", async () => {
+        await expect(
+          signerContract.addSigner(member.address)
+        ).to.be.revertedWith("Multisig__UserAlreadySigner");
+      });
     });
   });
 });

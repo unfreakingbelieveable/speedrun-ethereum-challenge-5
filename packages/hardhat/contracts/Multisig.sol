@@ -6,7 +6,6 @@ error Multisig__UserAlreadySigner();
 
 contract Multisig {
     event SignerAdded(address indexed newSigner);
-    event ContractInit(address[] indexed signers);
     event SignerRemoved(address indexed removedSigner);
 
     address[] public s_signers;
@@ -18,8 +17,6 @@ contract Multisig {
         for (uint256 i = 0; i < _signers.length; i++) {
             s_isSigner[_signers[i]] = true;
         }
-
-        emit ContractInit(_signers);
     }
 
     modifier OnlySigners() {
@@ -78,12 +75,8 @@ contract Multisig {
 
     // Shamelessly stolen from: https://solidity-by-example.org/array/
     // The last element overwrites the element we want to delete, then we pop the last element
-    function removeFromSignersArray(uint index) public OnlySigners {
-        s_signers[index] = s_signers[s_signers.length - 1];
+    function removeFromSignersArray(uint _index) internal OnlySigners {
+        s_signers[_index] = s_signers[s_signers.length - 1];
         s_signers.pop();
-    }
-
-    function getSigners() public view returns (address[] memory) {
-        return s_signers;
     }
 }
