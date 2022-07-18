@@ -10,6 +10,7 @@ const notMember = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 
 describe("My Dapp", function () {
   let myContract;
+  let signerContract;
   let member;
 
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
@@ -51,16 +52,24 @@ describe("My Dapp", function () {
 
     describe("AddSigner()", () => {
       it("Non-signer cannot add signer to contract", async () => {
-        await expect(myContract.addSigner(notMember)).to.be.reverted;
+        await expect(myContract.addSigner(notMember)).to.be.revertedWith(
+          "Multisig__UserIsNotSigner"
+        );
       });
 
       it("Existing signer can add new signer to contract", async () => {
-        const tempContract = await myContract.connect(member);
-        await tempContract.addSigner(notMember);
+        signerContract = await myContract.connect(member);
+        await signerContract.addSigner(notMember);
 
-        expect(await tempContract.s_isSigner(notMember)).to.equal(true);
+        expect(await signerContract.s_isSigner(notMember)).to.equal(true);
 
-        expect(await tempContract.s_signers(3)).to.equal(notMember);
+        expect(await signerContract.s_signers(3)).to.equal(notMember);
+      });
+
+      it("Should fail adding existing signer", async () => {
+        await expect(signerContract.addSigner(notMember)).to.be.revertedWith(
+          "Multisig__UserAlreadySigner"
+        );
       });
     });
   });
