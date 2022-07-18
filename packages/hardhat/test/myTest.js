@@ -75,5 +75,57 @@ describe("My Dapp", function () {
         );
       });
     });
+
+    describe("findIndexOfSigner()", () => {
+      it("Finds correct index of signer in signer's array", async () => {
+        expect(await myContract.findIndexOfSigner(members[0])).to.equal(0);
+        expect(await myContract.findIndexOfSigner(members[1])).to.equal(1);
+        expect(await myContract.findIndexOfSigner(members[2])).to.equal(2);
+      });
+    });
+
+    describe("removeFromSignersArray()", () => {
+      it("Removes correct index in signer's array", async () => {
+        let lastSigner = await signerContract.s_signers(3);
+        await signerContract.removeFromSignersArray(0);
+        let newFirstSigner = await signerContract.s_signers(0);
+
+        expect(newFirstSigner).to.be.equal(lastSigner);
+      });
+    });
+
+    describe("removeSigner()", () => {
+      it("Non-signer cannot remove signer from contract", async () => {
+        await expect(myContract.removeSigner(notMember)).to.be.revertedWith(
+          "Multisig__UserIsNotSigner"
+        );
+      });
+
+      it("Existing signer can remove signer from contract", async () => {
+        await expect(signerContract.removeSigner(notMember))
+          .to.emit(signerContract, "SignerRemoved")
+          .withArgs(notMember);
+
+        expect(await signerContract.s_isSigner(notMember)).to.equal(false);
+
+        let temp = await signerContract.getSigners();
+        console.log(temp);
+        // members.forEach(async (member) => {
+        //   expect(await signerContract.s_isSigner(member)).to.equal(true);
+        //   let temp = await signerContract.findIndexOfSigner(member);
+        //   console.log(`Member: ${member}, Index: ${temp}`);
+        // });
+        // expect(await signerContract.s_signers(2)).to.equal(member);
+
+        // Ensure the array got resized
+        await expect(signerContract.s_signers(2)).to.be.reverted;
+      });
+
+      // it("Should fail adding existing signer", async () => {
+      //   await expect(signerContract.addSigner(notMember)).to.be.revertedWith(
+      //     "Multisig__UserAlreadySigner"
+      //   );
+      // });
+    });
   });
 });

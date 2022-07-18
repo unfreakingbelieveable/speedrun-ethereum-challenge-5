@@ -6,6 +6,8 @@ error Multisig__UserAlreadySigner();
 
 contract Multisig {
     event SignerAdded(address indexed newSigner);
+    event ContractInit(address[] indexed signers);
+    event SignerRemoved(address indexed removedSigner);
 
     address[] public s_signers;
     mapping(address => bool) public s_isSigner;
@@ -16,6 +18,8 @@ contract Multisig {
         for (uint256 i = 0; i < _signers.length; i++) {
             s_isSigner[_signers[i]] = true;
         }
+
+        emit ContractInit(_signers);
     }
 
     modifier OnlySigners() {
@@ -35,8 +39,51 @@ contract Multisig {
         emit SignerAdded(_signer);
     }
 
+    function removeSigner(address _signer) external OnlySigners {
+        if (!s_isSigner[_signer]) {
+            revert Multisig__UserIsNotSigner();
+        }
+
+        uint256 removeIndex = findIndexOfSigner(_signer);
+        removeFromSignersArray(removeIndex);
+        s_isSigner[_signer] = false;
+        emit SignerRemoved(_signer);
+    }
+
+    // ---------------------------------------------------------------
     // to support receiving ETH by default
+    // ---------------------------------------------------------------
     receive() external payable {}
 
     fallback() external payable {}
+
+    // ---------------------------------------------------------------
+    // Array operations Helper methods
+    // ---------------------------------------------------------------
+    function findIndexOfSigner(address signer)
+        public
+        view
+        returns (uint256 index)
+    {
+        if (!s_isSigner[signer]) {
+            revert Multisig__UserIsNotSigner();
+        }
+        for (uint256 i = 0; i < s_signers.length; i++) {
+            if (s_signers[i] == signer) {
+                index = i;
+                break;
+            }
+        }
+    }
+
+    // Shamelessly stolen from: https://solidity-by-example.org/array/
+    // The last element overwrites the element we want to delete, then we pop the last element
+    function removeFromSignersArray(uint index) public OnlySigners {
+        s_signers[index] = s_signers[s_signers.length - 1];
+        s_signers.pop();
+    }
+
+    function getSigners() public view returns (address[] memory) {
+        return s_signers;
+    }
 }
