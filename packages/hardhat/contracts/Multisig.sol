@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "hardhat/console.sol";
+
 error Multisig__VotingNotEnded();
 error Multisig__ProposalExpired();
 error Multisig__UserIsNotSigner();
@@ -156,6 +158,8 @@ contract Multisig {
         returns (bytes memory)
     {
         bytes memory _data = _encodeData(_proposal.func, _proposal.data);
+
+        console.log("Data is ", string(_data));
 
         (bool success, bytes memory result) = _proposal.target.call{
             value: _proposal.value

@@ -32,8 +32,6 @@ describe("My Dapp", function () {
     it("Should deploy Multisig", async () => {
       const Multisig = await ethers.getContractFactory("Test_Multisig");
 
-      // TODO: Make network dynamic here
-      provider = ethers.getDefaultProvider();
       member = (await ethers.getSigners())[1];
       members.push(member.address.toString());
 
