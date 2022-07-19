@@ -7,8 +7,20 @@ error Multisig__UserAlreadySigner();
 contract Multisig {
     event SignerAdded(address indexed newSigner);
     event SignerRemoved(address indexed removedSigner);
+    event ProposalAdded(address indexed from, string title, uint256 expiration);
+    event TimeoutChanged(uint256 newTimeout);
 
+    struct Proposal {
+        address from;
+        bytes transaction;
+        string description;
+        address[] voteYes;
+        uint256 expiration;
+    }
+
+    uint256 public s_expirationTimeout;
     address[] public s_signers;
+    Proposal[] public s_proposals;
     mapping(address => bool) public s_isSigner;
 
     constructor(address[] memory _signers) {
@@ -24,6 +36,14 @@ contract Multisig {
             revert Multisig__UserIsNotSigner();
         }
         _;
+    }
+
+    // ---------------------------------------------------------------
+    // Main Multisig Operations
+    // ---------------------------------------------------------------
+    function changeTimeout(uint256 _newTimeout) external OnlySigners {
+        s_expirationTimeout = _newTimeout;
+        emit TimeoutChanged(_newTimeout);
     }
 
     function addSigner(address _signer) external OnlySigners {
@@ -45,6 +65,23 @@ contract Multisig {
         removeFromSignersArray(removeIndex);
         s_isSigner[_signer] = false;
         emit SignerRemoved(_signer);
+    }
+
+    function submitProposal(
+        bytes calldata _transaction,
+        string memory _description
+    ) external OnlySigners {
+        uint256 _expirationTime = block.timestamp + s_expirationTimeout;
+
+        Proposal memory _newProposal = Proposal({
+            from: msg.sender,
+            transaction: _transaction,
+            description: _description,
+            voteYes: new address[](0),
+            expiration: block.timestamp + s_expirationTimeout
+        });
+        s_proposals.push(_newProposal);
+        emit ProposalAdded(msg.sender, _description, _expirationTime);
     }
 
     // ---------------------------------------------------------------

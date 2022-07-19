@@ -12,8 +12,9 @@ A smart contract that allows multiple users to approve transactions before they 
 
 - Multiple public keys are saved as "signers" in the contract.
 - A minimum number threshold of signers is chosen to approve transactions.
-- To do something with the funds in the multisig, a signed transaction is sent from one of the signers to be approved by the others.
+- To do something with the funds in the multisig, an encoded transaction is sent from one of the signers to be approved by the others.
   - This transaction will do something on a different contract, but use the funds in the multi sig.
+- The signers vote on the transaction. If it passes before a deadline, then the contract signs the transaction and submits it to the network.
 
 # Goals for challenge 5
 
