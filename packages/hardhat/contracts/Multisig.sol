@@ -1,14 +1,18 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+error Multisig__VotingNotEnded();
 error Multisig__ProposalExpired();
 error Multisig__UserIsNotSigner();
 error Multisig__UserAlreadySigner();
+error Multisig__ProposalDidNotPass();
 error Multisig__FunctionNotImplemented();
+error Multisig__ProposalExecutionFailed();
 
 contract Multisig {
     event TimeoutChanged(uint256 newTimeout);
     event SignerAdded(address indexed newSigner);
+    event ProposalExecuted(uint256 indexed index);
     event SignerRemoved(address indexed removedSigner);
     event SignerVoted(address indexed signer, uint256 indexed index);
     event ProposalAdded(address indexed from, string title, uint256 expiration);
@@ -22,6 +26,8 @@ contract Multisig {
         string description;
         address[] voteYes;
         uint256 expiration;
+        bool executed;
+        bytes result;
     }
 
     uint256 public s_minVotes;
@@ -105,7 +111,9 @@ contract Multisig {
             data: _data,
             description: _description,
             voteYes: new address[](0),
-            expiration: block.timestamp + s_expirationTimeout
+            expiration: block.timestamp + s_expirationTimeout,
+            executed: false,
+            result: ""
         });
         s_proposals.push(_newProposal);
         emit ProposalAdded(msg.sender, _description, _expirationTime);
@@ -120,6 +128,44 @@ contract Multisig {
 
         _proposal.voteYes.push(msg.sender);
         emit SignerVoted(msg.sender, _index);
+    }
+
+    function executeProposal(uint256 _index) external OnlySigners {
+        Proposal memory _proposal = s_proposals[_index];
+
+        if (_proposal.expiration > block.timestamp) {
+            revert Multisig__VotingNotEnded();
+        }
+
+        if (_proposal.voteYes.length < s_minVotes) {
+            revert Multisig__ProposalDidNotPass();
+        }
+
+        bytes memory _result = _executeProposal(_proposal);
+
+        s_proposals[_index].executed = true;
+        s_proposals[_index].result = _result;
+        emit ProposalExecuted(_index);
+    }
+
+    function _executeProposal(Proposal memory _proposal)
+        internal
+        returns (bytes memory)
+    {
+        bytes memory _data = abi.encodePacked(
+            bytes4(keccak256(bytes(_proposal.func))),
+            _proposal.data
+        );
+
+        (bool success, bytes memory result) = _proposal.target.call{
+            value: _proposal.value
+        }(_data);
+
+        if (!success) {
+            revert Multisig__ProposalExecutionFailed();
+        }
+
+        return result;
     }
 
     // ---------------------------------------------------------------

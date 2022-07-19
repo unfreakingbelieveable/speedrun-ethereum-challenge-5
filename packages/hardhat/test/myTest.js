@@ -183,6 +183,7 @@ describe("My Dapp", function () {
           expect(proposal.func).to.equal(funcName);
           expect(proposal.data).to.equal("0x");
           expect(proposal.description).to.equal(description);
+          expect(proposal.executed).to.equal(false);
 
           // TODO: Test expiration
 
