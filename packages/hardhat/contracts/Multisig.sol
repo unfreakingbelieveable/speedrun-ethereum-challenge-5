@@ -6,6 +6,7 @@ import "hardhat/console.sol";
 error Multisig__VotingNotEnded();
 error Multisig__ProposalExpired();
 error Multisig__UserIsNotSigner();
+error Multisig__AlreadyExecuted();
 error Multisig__UserAlreadySigner();
 error Multisig__ProposalDidNotPass();
 error Multisig__FunctionNotImplemented();
@@ -60,7 +61,7 @@ contract Multisig {
     // Main Multisig Operations
     // TODO: Make these internal so only the contract can execute them
     // ---------------------------------------------------------------
-    function changeTimeout(uint256 _newTimeout) external OnlySigners {
+    function changeTimeout(uint256 _newTimeout) internal {
         s_expirationTimeout = _newTimeout;
         emit TimeoutChanged(_newTimeout);
     }
@@ -142,6 +143,10 @@ contract Multisig {
 
         if (_proposal.voteYes.length < s_minVotes) {
             revert Multisig__ProposalDidNotPass();
+        }
+
+        if (_proposal.executed = true) {
+            revert Multisig__AlreadyExecuted();
         }
 
         bytes memory _result = _executeProposal(_proposal);

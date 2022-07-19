@@ -12,6 +12,14 @@ contract Test_Multisig is Multisig {
         return s_signers;
     }
 
+    function test_getProposals() public view returns (Proposal[] memory) {
+        return s_proposals;
+    }
+
+    function test_changeTimeout(uint256 _newTimeout) public {
+        changeTimeout(_newTimeout);
+    }
+
     function test_findIndexOfSigner(address _signer)
         public
         view
