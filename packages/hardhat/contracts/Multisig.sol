@@ -3,6 +3,7 @@ pragma solidity >=0.8.0 <0.9.0;
 
 error Multisig__UserIsNotSigner();
 error Multisig__UserAlreadySigner();
+error Multisig__FunctionNotImplemented();
 
 contract Multisig {
     event SignerAdded(address indexed newSigner);
@@ -108,9 +109,13 @@ contract Multisig {
     // ---------------------------------------------------------------
     // to support receiving ETH by default
     // ---------------------------------------------------------------
-    receive() external payable {}
+    receive() external payable {
+        revert Multisig__FunctionNotImplemented();
+    }
 
-    fallback() external payable {}
+    fallback() external payable {
+        revert Multisig__FunctionNotImplemented();
+    }
 
     // ---------------------------------------------------------------
     // Array operations Helper methods
