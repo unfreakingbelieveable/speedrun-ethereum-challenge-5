@@ -99,8 +99,8 @@ contract Multisig {
     function submitProposal(
         address _target,
         uint256 _value,
-        string calldata _function,
-        bytes calldata _data,
+        string memory _function,
+        bytes memory _data,
         string memory _description
     ) external OnlySigners {
         uint256 _expirationTime = block.timestamp + s_expirationTimeout;
@@ -110,7 +110,7 @@ contract Multisig {
             target: _target,
             value: _value,
             func: _function,
-            data: _data,
+            data: abi.encode(_data),
             description: _description,
             voteYes: new address[](0),
             expiration: block.timestamp + s_expirationTimeout,
@@ -159,7 +159,9 @@ contract Multisig {
     {
         bytes memory _data = _encodeData(_proposal.func, _proposal.data);
 
-        console.log("Data is ", string(_data));
+        console.log("Target is ", _proposal.target);
+        console.log("Data is ", string(_proposal.data));
+        console.log("Encoded data is ", string(_data));
 
         (bool success, bytes memory result) = _proposal.target.call{
             value: _proposal.value

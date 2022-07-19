@@ -13,19 +13,34 @@ const initialTimeout = 60 * 60 * 24 * 7; // One week in seconds
 describe("My Dapp", function () {
   let myContract;
   let signerContract;
+  let messageContract;
   let member;
   let provider;
 
-  let target = weth; // WETH address
-  let value = ethers.utils.parseEther("0.1");
-  let funcName = "deposit()";
-  let data = ethers.utils.toUtf8Bytes("");
+  let target;
+  let value = 0;
+  let funcName = "changeMessage(string)";
+  let data = ethers.utils.toUtf8Bytes("Hi there!");
   let description = "From submitProposal() tests";
-  let encodedData = "0xd0e30db0";
+  // let encodedData = "0xd0e30db0";
+  let encodedData = "0xa2f18fbf486920746865726521";
 
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
   before((done) => {
     setTimeout(done, 2000);
+  });
+
+  describe("Test_Call", () => {
+    describe("Deploy Test_Call", () => {
+      it("Deploys Test_Call", async () => {
+        const Test_Call = await ethers.getContractFactory("Test_Call");
+        messageContract = await Test_Call.deploy();
+
+        target = await messageContract.address;
+
+        console.log(`Test_Call address ${target}`);
+      });
+    });
   });
 
   describe("Multisig", function () {
@@ -184,7 +199,7 @@ describe("My Dapp", function () {
           expect(proposal.target).to.equal(target);
           expect(proposal.value).to.equal(value);
           expect(proposal.func).to.equal(funcName);
-          expect(proposal.data).to.equal("0x");
+          // expect(proposal.data).to.equal(data);
           expect(proposal.description).to.equal(description);
           expect(proposal.executed).to.equal(false);
 
@@ -214,12 +229,12 @@ describe("My Dapp", function () {
     });
 
     describe("_encodeData()", () => {
+      // Should be this! 0x60fd1c4f000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000094869205468657265210000000000000000000000000000000000000000000000
       it("Encodes data for execution", async () => {
+        console.log(await signerContract.test_encodeData(funcName, data));
         expect(await signerContract.test_encodeData(funcName, data)).to.equal(
           encodedData
         );
-
-        console.log((await signerContract.s_proposals(0)).value.toString());
       });
     });
 

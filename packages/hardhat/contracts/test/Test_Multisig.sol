@@ -38,8 +38,8 @@ contract Test_Multisig is Multisig {
     function test_executeProposal(
         address _target,
         uint256 _value,
-        string calldata _function,
-        bytes calldata _data,
+        string memory _function,
+        bytes memory _data,
         string memory _description
     ) public returns (bytes memory) {
         Proposal memory _newProposal = Proposal({
@@ -47,7 +47,7 @@ contract Test_Multisig is Multisig {
             target: _target,
             value: _value,
             func: _function,
-            data: _data,
+            data: abi.encode(_data),
             description: _description,
             voteYes: new address[](0),
             expiration: block.timestamp + s_expirationTimeout,
