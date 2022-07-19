@@ -25,6 +25,9 @@ describe("My Dapp", function () {
   let description = "From submitProposal() tests";
   // let encodedData = "0xd0e30db0";
 
+  const maxProposalsSubmitted = 3;
+  const newTimeout = 10;
+
   let iface = new ethers.utils.Interface([
     "function changeMessage(string newMessage)",
   ]);
@@ -96,7 +99,6 @@ describe("My Dapp", function () {
       });
 
       it("Changes timeout in contract", async () => {
-        let newTimeout = 30; // 30 seconds
         await signerContract.changeTimeout(newTimeout);
 
         expect(await signerContract.s_expirationTimeout()).to.equal(newTimeout);
@@ -186,7 +188,7 @@ describe("My Dapp", function () {
       });
 
       it("Submits proposal", async () => {
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < maxProposalsSubmitted; i++) {
           expect(
             await signerContract.submitProposal(
               target,
@@ -216,6 +218,9 @@ describe("My Dapp", function () {
       });
     });
 
+    /**
+     * TODO: Test voting after voting period has ended
+     */
     describe("voteOnProposal()", () => {
       it("Non-signer cannot vote", async () => {
         await expect(myContract.voteOnProposal(0)).to.be.revertedWith(
@@ -265,17 +270,29 @@ describe("My Dapp", function () {
           "Multisig__UserIsNotSigner"
         );
       });
-      // it("Executes a proposal, bypassing multisig", async () => {
-      //   let output = await signerContract.test_executeProposal(
-      //     target,
-      //     value,
-      //     funcName,
-      //     data,
-      //     description
-      //   );
 
-      //   console.log(output);
-      // });
+      it("Tries to execute a proposal before voting period ends", async () => {
+        await expect(signerContract.executeProposal(1)).to.be.revertedWith(
+          "Multisig__VotingNotEnded"
+        );
+      });
+
+      it("Tries to execute a proposal without minimum number of votes", async () => {
+        // Wait for proposal voting period to end
+        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+
+        await expect(signerContract.executeProposal(2)).to.be.revertedWith(
+          "Multisig__ProposalDidNotPass"
+        );
+      });
+
+      it("Executes a proposal", async () => {
+        expect(await signerContract.executeProposal(0))
+          .to.emit(signerContract, "ProposalExecuted")
+          .withArgs(0);
+
+        expect(await messageContract.message()).to.equal(rawData);
+      });
     });
   });
 });

@@ -42,7 +42,7 @@ contract Multisig {
     constructor(address[] memory _signers, uint256 _timeout) {
         s_expirationTimeout = _timeout;
         s_signers = _signers;
-        s_minVotes = 2;
+        s_minVotes = 1;
 
         for (uint256 i = 0; i < _signers.length; i++) {
             s_isSigner[_signers[i]] = true;
