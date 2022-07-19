@@ -148,14 +148,14 @@ contract Multisig {
         emit ProposalExecuted(_index);
     }
 
+    /**
+     * @dev Splitting this out was done for testing purposes
+     */
     function _executeProposal(Proposal memory _proposal)
         internal
         returns (bytes memory)
     {
-        bytes memory _data = abi.encodePacked(
-            bytes4(keccak256(bytes(_proposal.func))),
-            _proposal.data
-        );
+        bytes memory _data = _encodeData(_proposal.func, _proposal.data);
 
         (bool success, bytes memory result) = _proposal.target.call{
             value: _proposal.value
@@ -166,6 +166,17 @@ contract Multisig {
         }
 
         return result;
+    }
+
+    /**
+     * @dev Splitting this out was done for testing purposes
+     */
+    function _encodeData(string memory _function, bytes memory _data)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodePacked(bytes4(keccak256(bytes(_function))), _data);
     }
 
     // ---------------------------------------------------------------

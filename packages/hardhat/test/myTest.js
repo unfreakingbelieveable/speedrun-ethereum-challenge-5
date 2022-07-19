@@ -7,12 +7,21 @@ use(solidity);
 
 // FYI - This is the WETH addr on mainnet
 const notMember = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+const weth = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const initialTimeout = 60 * 60 * 24 * 7; // One week in seconds
 
 describe("My Dapp", function () {
   let myContract;
   let signerContract;
   let member;
+  let provider;
+
+  let target = weth; // WETH address
+  let value = ethers.utils.parseEther("0.1");
+  let funcName = "deposit()";
+  let data = ethers.utils.toUtf8Bytes("");
+  let description = "From submitProposal() tests";
+  let encodedData = "0xd0e30db0";
 
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
   before((done) => {
@@ -23,6 +32,8 @@ describe("My Dapp", function () {
     it("Should deploy Multisig", async () => {
       const Multisig = await ethers.getContractFactory("Test_Multisig");
 
+      // TODO: Make network dynamic here
+      provider = ethers.getDefaultProvider();
       member = (await ethers.getSigners())[1];
       members.push(member.address.toString());
 
@@ -150,12 +161,6 @@ describe("My Dapp", function () {
     });
 
     describe("submitProposal()", () => {
-      let target = notMember; // WETH address
-      let value = ethers.utils.parseEther("0.1");
-      let funcName = "deposit()";
-      let data = ethers.utils.toUtf8Bytes("");
-      let description = "From submitProposal() tests";
-
       it("Does not allow non-signer to submit proposal", async () => {
         await expect(
           myContract.submitProposal(target, value, funcName, data, description)
@@ -207,6 +212,30 @@ describe("My Dapp", function () {
 
         let votes = await signerContract.test_getVoteArrayInProposal(0);
         expect(votes[0]).to.equal(member.address);
+      });
+    });
+
+    describe("_encodeData()", () => {
+      it("Encodes data for execution", async () => {
+        expect(await signerContract.test_encodeData(funcName, data)).to.equal(
+          encodedData
+        );
+
+        console.log((await signerContract.s_proposals(0)).value.toString());
+      });
+    });
+
+    describe("_executeProposal()", () => {
+      it("Executes a proposal", async () => {
+        let output = await signerContract.test_executeProposal(
+          target,
+          value,
+          funcName,
+          data,
+          description
+        );
+
+        console.log(output);
       });
     });
   });

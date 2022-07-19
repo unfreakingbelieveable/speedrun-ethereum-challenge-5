@@ -34,4 +34,35 @@ contract Test_Multisig is Multisig {
     {
         return s_proposals[_index].voteYes;
     }
+
+    function test_executeProposal(
+        address _target,
+        uint256 _value,
+        string calldata _function,
+        bytes calldata _data,
+        string memory _description
+    ) public returns (bytes memory) {
+        Proposal memory _newProposal = Proposal({
+            from: msg.sender,
+            target: _target,
+            value: _value,
+            func: _function,
+            data: _data,
+            description: _description,
+            voteYes: new address[](0),
+            expiration: block.timestamp + s_expirationTimeout,
+            executed: false,
+            result: ""
+        });
+
+        return _executeProposal(_newProposal);
+    }
+
+    function test_encodeData(string memory _function, bytes memory _data)
+        public
+        pure
+        returns (bytes memory)
+    {
+        return _encodeData(_function, _data);
+    }
 }
