@@ -15,15 +15,20 @@ describe("My Dapp", function () {
   let signerContract;
   let messageContract;
   let member;
-  let provider;
 
   let target;
+  // let value = ethers.utils.parseEther("0.0001");
   let value = 0;
   let funcName = "changeMessage(string)";
-  let data = ethers.utils.toUtf8Bytes("Hi there!");
+  let rawData = "Hi there!";
+  let data = ethers.utils.toUtf8Bytes(rawData);
   let description = "From submitProposal() tests";
   // let encodedData = "0xd0e30db0";
-  let encodedData = "0xa2f18fbf486920746865726521";
+
+  let iface = new ethers.utils.Interface([
+    "function changeMessage(string newMessage)",
+  ]);
+  let encodedData = iface.encodeFunctionData("changeMessage", [rawData]);
 
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
   before((done) => {
@@ -228,18 +233,17 @@ describe("My Dapp", function () {
       });
     });
 
-    describe("_encodeData()", () => {
-      // Should be this! 0x60fd1c4f000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000094869205468657265210000000000000000000000000000000000000000000000
-      it("Encodes data for execution", async () => {
-        console.log(await signerContract.test_encodeData(funcName, data));
-        expect(await signerContract.test_encodeData(funcName, data)).to.equal(
-          encodedData
-        );
-      });
-    });
+    // describe("_encodeData()", () => {
+    //   it("Encodes data for execution", async () => {
+    //     console.log(await signerContract.test_encodeData(funcName, data));
+    //     expect(await signerContract.test_encodeData(funcName, data)).to.equal(
+    //       encodedData
+    //     );
+    //   });
+    // });
 
     describe("_executeProposal()", () => {
-      it("Executes a proposal", async () => {
+      it("Executes a proposal, bypassing multisig", async () => {
         let output = await signerContract.test_executeProposal(
           target,
           value,
@@ -248,8 +252,30 @@ describe("My Dapp", function () {
           description
         );
 
-        console.log(output);
+        expect(await messageContract.message()).to.equal(rawData);
+
+        // Reset the message for later tests
+        await messageContract.changeMessage("Hello World!");
       });
+    });
+
+    describe("executeProposal()", () => {
+      it("Does not allow non-signers to execute", async () => {
+        expect(myContract.executeProposal(0)).to.be.revertedWith(
+          "Multisig__UserIsNotSigner"
+        );
+      });
+      // it("Executes a proposal, bypassing multisig", async () => {
+      //   let output = await signerContract.test_executeProposal(
+      //     target,
+      //     value,
+      //     funcName,
+      //     data,
+      //     description
+      //   );
+
+      //   console.log(output);
+      // });
     });
   });
 });
