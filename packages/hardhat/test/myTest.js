@@ -130,11 +130,22 @@ describe("My Dapp", function () {
       });
     });
 
-    describe("findIndexOfSigner()", () => {
-      it("Finds correct index of signer in signer's array", async () => {
-        expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
-        expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
-        expect(await myContract.test_findIndexOfSigner(members[2])).to.equal(2);
+    describe("changeTimeout()", () => {
+      it("Does not allow non-signer to change timeout", async () => {
+        await expect(myContract.changeTimeout(420)).to.be.revertedWith(
+          "Multisig__UserIsNotSigner"
+        );
+      });
+
+      it("Changes timeout in contract", async () => {
+        let newTimeout = 30; // 30 seconds
+        await signerContract.changeTimeout(newTimeout);
+
+        expect(await signerContract.s_expirationTimeout()).to.equal(newTimeout);
+
+        expect(await signerContract.changeTimeout(newTimeout))
+          .to.emit(signerContract, "TimeoutChanged")
+          .withArgs(newTimeout.toString());
       });
     });
   });
