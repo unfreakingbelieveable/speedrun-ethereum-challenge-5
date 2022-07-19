@@ -148,5 +148,33 @@ describe("My Dapp", function () {
         ).to.be.revertedWith("Multisig__UserAlreadySigner");
       });
     });
+
+    describe("submitProposal()", () => {
+      let target = notMember; // WETH address
+      let value = ethers.utils.parseEther("0.1");
+      let funcName = "deposit()";
+      let data = ethers.utils.toUtf8Bytes("");
+      let description = "From submitProposal() tests";
+
+      it("Does not allow non-signer to submit proposal", async () => {
+        await expect(
+          myContract.submitProposal(target, value, funcName, data, description)
+        ).to.be.revertedWith("Multisig__UserIsNotSigner");
+      });
+
+      it("Submits proposal", async () => {
+        expect(
+          await signerContract.submitProposal(
+            target,
+            value,
+            funcName,
+            data,
+            description
+          )
+        )
+          .to.emit(signerContract, "ProposalAdded")
+          .withArgs(member.address, description, Number);
+      });
+    });
   });
 });
