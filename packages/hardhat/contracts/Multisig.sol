@@ -23,7 +23,8 @@ contract Multisig {
     Proposal[] public s_proposals;
     mapping(address => bool) public s_isSigner;
 
-    constructor(address[] memory _signers) {
+    constructor(address[] memory _signers, uint256 _timeout) {
+        s_expirationTimeout = _timeout;
         s_signers = _signers;
 
         for (uint256 i = 0; i < _signers.length; i++) {

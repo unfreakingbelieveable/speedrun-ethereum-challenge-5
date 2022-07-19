@@ -7,6 +7,7 @@ use(solidity);
 
 // FYI - This is the WETH addr on mainnet
 const notMember = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+const initialTimeout = 60 * 60 * 24 * 7; // One week in seconds
 
 describe("My Dapp", function () {
   let myContract;
@@ -26,7 +27,7 @@ describe("My Dapp", function () {
       members.push(member.address.toString());
 
       // imported members PLUS the second signer address
-      myContract = await Multisig.deploy(members);
+      myContract = await Multisig.deploy(members, initialTimeout);
     });
 
     describe("Constructor()", function () {

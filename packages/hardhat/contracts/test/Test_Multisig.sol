@@ -4,7 +4,9 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../Multisig.sol";
 
 contract Test_Multisig is Multisig {
-    constructor(address[] memory _signers) Multisig(_signers) {}
+    constructor(address[] memory _signers, uint256 _timeout)
+        Multisig(_signers, _timeout)
+    {}
 
     function test_getSigners() public view returns (address[] memory) {
         return s_signers;
