@@ -20,7 +20,7 @@ describe("My Dapp", function () {
   });
 
   describe("Multisig", function () {
-    it("Should deploy Multisig", async function () {
+    it("Should deploy Multisig", async () => {
       const Multisig = await ethers.getContractFactory("Test_Multisig");
 
       member = (await ethers.getSigners())[1];
@@ -28,9 +28,11 @@ describe("My Dapp", function () {
 
       // imported members PLUS the second signer address
       myContract = await Multisig.deploy(members, initialTimeout);
+
+      signerContract = myContract.connect(member);
     });
 
-    describe("Constructor()", function () {
+    describe("Constructor()", () => {
       it("Should have saved signers to array properly", async function () {
         let i;
         for (i = 0; i < members.length; i++) {
@@ -57,6 +59,25 @@ describe("My Dapp", function () {
       });
     });
 
+    describe("changeTimeout()", () => {
+      it("Does not allow non-signer to change timeout", async () => {
+        await expect(myContract.changeTimeout(420)).to.be.revertedWith(
+          "Multisig__UserIsNotSigner"
+        );
+      });
+
+      it("Changes timeout in contract", async () => {
+        let newTimeout = 30; // 30 seconds
+        await signerContract.changeTimeout(newTimeout);
+
+        expect(await signerContract.s_expirationTimeout()).to.equal(newTimeout);
+
+        expect(await signerContract.changeTimeout(newTimeout))
+          .to.emit(signerContract, "TimeoutChanged")
+          .withArgs(newTimeout.toString());
+      });
+    });
+
     describe("AddSigner()", () => {
       it("Non-signer cannot add signer to contract", async () => {
         await expect(myContract.addSigner(notMember)).to.be.revertedWith(
@@ -65,8 +86,6 @@ describe("My Dapp", function () {
       });
 
       it("Existing signer can add new signer to contract", async () => {
-        signerContract = await myContract.connect(member);
-
         await expect(signerContract.addSigner(notMember))
           .to.emit(signerContract, "SignerAdded")
           .withArgs(notMember);
@@ -127,25 +146,6 @@ describe("My Dapp", function () {
         await expect(
           signerContract.addSigner(member.address)
         ).to.be.revertedWith("Multisig__UserAlreadySigner");
-      });
-    });
-
-    describe("changeTimeout()", () => {
-      it("Does not allow non-signer to change timeout", async () => {
-        await expect(myContract.changeTimeout(420)).to.be.revertedWith(
-          "Multisig__UserIsNotSigner"
-        );
-      });
-
-      it("Changes timeout in contract", async () => {
-        let newTimeout = 30; // 30 seconds
-        await signerContract.changeTimeout(newTimeout);
-
-        expect(await signerContract.s_expirationTimeout()).to.equal(newTimeout);
-
-        expect(await signerContract.changeTimeout(newTimeout))
-          .to.emit(signerContract, "TimeoutChanged")
-          .withArgs(newTimeout.toString());
       });
     });
   });

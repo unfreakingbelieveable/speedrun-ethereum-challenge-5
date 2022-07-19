@@ -12,7 +12,10 @@ contract Multisig {
 
     struct Proposal {
         address from;
-        bytes transaction;
+        address target;
+        uint256 value;
+        string func;
+        bytes data;
         string description;
         address[] voteYes;
         uint256 expiration;
@@ -68,15 +71,32 @@ contract Multisig {
         emit SignerRemoved(_signer);
     }
 
+    /**
+     * @notice A fair bit of this is stolen shamelessly from https://solidity-by-example.org/app/time-lock/
+     * @notice I didn't cheat by looking at the multi-sig example ;)
+     *
+     * @dev this function submits proposals to the multisig queue
+     *
+     * @param _target Address of contract or account to call
+     * @param _value Amount of ETH to send
+     * @param _function Function signature, for example "foo(address,uint256)"
+     * @param _data ABI encoded data send.
+     */
     function submitProposal(
-        bytes calldata _transaction,
+        address _target,
+        uint256 _value,
+        string calldata _function,
+        bytes calldata _data,
         string memory _description
     ) external OnlySigners {
         uint256 _expirationTime = block.timestamp + s_expirationTimeout;
 
         Proposal memory _newProposal = Proposal({
             from: msg.sender,
-            transaction: _transaction,
+            target: _target,
+            value: _value,
+            func: _function,
+            data: _data,
             description: _description,
             voteYes: new address[](0),
             expiration: block.timestamp + s_expirationTimeout
