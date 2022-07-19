@@ -26,4 +26,12 @@ contract Test_Multisig is Multisig {
         removeFromSignersArray(_index);
         s_isSigner[_signer] = false;
     }
+
+    function test_getVoteArrayInProposal(uint256 _index)
+        public
+        view
+        returns (address[] memory)
+    {
+        return s_proposals[_index].voteYes;
+    }
 }

@@ -174,6 +174,36 @@ describe("My Dapp", function () {
         )
           .to.emit(signerContract, "ProposalAdded")
           .withArgs(member.address, description, Number);
+
+        let proposal = await signerContract.s_proposals(0);
+        expect(proposal.from).to.equal(member.address);
+        expect(proposal.target).to.equal(target);
+        expect(proposal.value).to.equal(value);
+        expect(proposal.func).to.equal(funcName);
+        expect(proposal.data).to.equal("0x");
+        expect(proposal.description).to.equal(description);
+
+        // TODO: Test expiration
+
+        let votes = await signerContract.test_getVoteArrayInProposal(0);
+        expect(votes.length).to.equal(0);
+      });
+    });
+
+    describe("voteOnProposal()", () => {
+      it("Non-signer cannot vote", async () => {
+        await expect(myContract.voteOnProposal(0)).to.be.revertedWith(
+          "Multisig__UserIsNotSigner"
+        );
+      });
+
+      it("Signer can vote on proposal", async () => {
+        expect(await signerContract.voteOnProposal(0))
+          .to.emit(signerContract, "SignerVoted")
+          .withArgs(member.address, 0);
+
+        let votes = await signerContract.test_getVoteArrayInProposal(0);
+        expect(votes[0]).to.equal(member.address);
       });
     });
   });

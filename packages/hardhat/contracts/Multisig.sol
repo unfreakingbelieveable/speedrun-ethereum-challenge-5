@@ -1,15 +1,17 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+error Multisig__ProposalExpired();
 error Multisig__UserIsNotSigner();
 error Multisig__UserAlreadySigner();
 error Multisig__FunctionNotImplemented();
 
 contract Multisig {
+    event TimeoutChanged(uint256 newTimeout);
     event SignerAdded(address indexed newSigner);
     event SignerRemoved(address indexed removedSigner);
+    event SignerVoted(address indexed signer, uint256 indexed index);
     event ProposalAdded(address indexed from, string title, uint256 expiration);
-    event TimeoutChanged(uint256 newTimeout);
 
     struct Proposal {
         address from;
@@ -22,14 +24,17 @@ contract Multisig {
         uint256 expiration;
     }
 
-    uint256 public s_expirationTimeout;
+    uint256 public s_minVotes;
     address[] public s_signers;
     Proposal[] public s_proposals;
+    uint256 public s_expirationTimeout;
     mapping(address => bool) public s_isSigner;
 
+    // TODO: Make minvotes dynamic
     constructor(address[] memory _signers, uint256 _timeout) {
         s_expirationTimeout = _timeout;
         s_signers = _signers;
+        s_minVotes = 2;
 
         for (uint256 i = 0; i < _signers.length; i++) {
             s_isSigner[_signers[i]] = true;
@@ -104,6 +109,17 @@ contract Multisig {
         });
         s_proposals.push(_newProposal);
         emit ProposalAdded(msg.sender, _description, _expirationTime);
+    }
+
+    function voteOnProposal(uint256 _index) external OnlySigners {
+        Proposal storage _proposal = s_proposals[_index];
+
+        if (block.timestamp > _proposal.expiration) {
+            revert Multisig__ProposalExpired();
+        }
+
+        _proposal.voteYes.push(msg.sender);
+        emit SignerVoted(msg.sender, _index);
     }
 
     // ---------------------------------------------------------------
