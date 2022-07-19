@@ -58,6 +58,7 @@ contract Multisig {
 
     // ---------------------------------------------------------------
     // Main Multisig Operations
+    // TODO: Make these internal so only the contract can execute them
     // ---------------------------------------------------------------
     function changeTimeout(uint256 _newTimeout) external OnlySigners {
         s_expirationTimeout = _newTimeout;
@@ -216,7 +217,7 @@ contract Multisig {
     }
 
     // Shamelessly stolen from: https://solidity-by-example.org/array/
-    // The last element overwrites the element we want to delete, then we pop the last element
+    // Last element copied over the element we want to delete, then we pop the last element
     function removeFromSignersArray(uint _index) internal OnlySigners {
         s_signers[_index] = s_signers[s_signers.length - 1];
         s_signers.pop();

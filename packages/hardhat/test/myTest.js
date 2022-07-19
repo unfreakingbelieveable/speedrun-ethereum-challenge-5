@@ -238,6 +238,7 @@ describe("My Dapp", function () {
       });
     });
 
+    // TODO: Make this work
     // describe("_encodeData()", () => {
     //   it("Encodes data for execution", async () => {
     //     console.log(await signerContract.test_encodeData(funcName, data));
