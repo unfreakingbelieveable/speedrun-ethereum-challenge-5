@@ -49,6 +49,12 @@ describe("My Dapp", function () {
 
         expect(await myContract.s_isSigner(notMember)).to.equal(false);
       });
+
+      it("Should have saved timeout properly", async () => {
+        expect((await myContract.s_expirationTimeout()).toString()).to.equal(
+          initialTimeout.toString()
+        );
+      });
     });
 
     describe("AddSigner()", () => {
@@ -121,6 +127,14 @@ describe("My Dapp", function () {
         await expect(
           signerContract.addSigner(member.address)
         ).to.be.revertedWith("Multisig__UserAlreadySigner");
+      });
+    });
+
+    describe("findIndexOfSigner()", () => {
+      it("Finds correct index of signer in signer's array", async () => {
+        expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
+        expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
+        expect(await myContract.test_findIndexOfSigner(members[2])).to.equal(2);
       });
     });
   });
