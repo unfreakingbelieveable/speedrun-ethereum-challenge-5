@@ -163,30 +163,32 @@ describe("My Dapp", function () {
       });
 
       it("Submits proposal", async () => {
-        expect(
-          await signerContract.submitProposal(
-            target,
-            value,
-            funcName,
-            data,
-            description
+        for (let i = 0; i < 2; i++) {
+          expect(
+            await signerContract.submitProposal(
+              target,
+              value,
+              funcName,
+              data,
+              description
+            )
           )
-        )
-          .to.emit(signerContract, "ProposalAdded")
-          .withArgs(member.address, description, Number);
+            .to.emit(signerContract, "ProposalAdded")
+            .withArgs(member.address, description, Number);
 
-        let proposal = await signerContract.s_proposals(0);
-        expect(proposal.from).to.equal(member.address);
-        expect(proposal.target).to.equal(target);
-        expect(proposal.value).to.equal(value);
-        expect(proposal.func).to.equal(funcName);
-        expect(proposal.data).to.equal("0x");
-        expect(proposal.description).to.equal(description);
+          let proposal = await signerContract.s_proposals(i);
+          expect(proposal.from).to.equal(member.address);
+          expect(proposal.target).to.equal(target);
+          expect(proposal.value).to.equal(value);
+          expect(proposal.func).to.equal(funcName);
+          expect(proposal.data).to.equal("0x");
+          expect(proposal.description).to.equal(description);
 
-        // TODO: Test expiration
+          // TODO: Test expiration
 
-        let votes = await signerContract.test_getVoteArrayInProposal(0);
-        expect(votes.length).to.equal(0);
+          let votes = await signerContract.test_getVoteArrayInProposal(i);
+          expect(votes.length).to.equal(0);
+        }
       });
     });
 
