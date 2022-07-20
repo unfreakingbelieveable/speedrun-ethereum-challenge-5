@@ -90,63 +90,63 @@ describe("My Dapp", function () {
       });
     });
 
-    describe("submitProposal()", () => {
-      it("Does not allow non-signer to submit proposal", async () => {
-        await expect(
-          myContract.submitProposal(target, value, funcName, data, description)
-        ).to.be.revertedWith("Multisig__UserIsNotSigner");
-      });
+    // describe("submitProposal()", () => {
+    //   it("Does not allow non-signer to submit proposal", async () => {
+    //     await expect(
+    //       myContract.submitProposal(target, value, funcName, data, description)
+    //     ).to.be.revertedWith("Multisig__UserIsNotSigner");
+    //   });
 
-      it("Submits proposal", async () => {
-        for (let i = 0; i < maxProposalsSubmitted; i++) {
-          expect(
-            await signerContract.submitProposal(
-              target,
-              value,
-              funcName,
-              data,
-              description
-            )
-          )
-            .to.emit(signerContract, "ProposalAdded")
-            .withArgs(member.address, description, Number);
+    //   it("Submits proposal", async () => {
+    //     for (let i = 0; i < maxProposalsSubmitted; i++) {
+    //       expect(
+    //         await signerContract.submitProposal(
+    //           target,
+    //           value,
+    //           funcName,
+    //           data,
+    //           description
+    //         )
+    //       )
+    //         .to.emit(signerContract, "ProposalAdded")
+    //         .withArgs(member.address, description, Number);
 
-          let proposal = await signerContract.s_proposals(i);
-          expect(proposal.from).to.equal(member.address);
-          expect(proposal.target).to.equal(target);
-          expect(proposal.value).to.equal(value);
-          expect(proposal.func).to.equal(funcName);
-          // expect(proposal.data).to.equal(data);
-          expect(proposal.description).to.equal(description);
-          expect(proposal.executed).to.equal(false);
+    //       let proposal = await signerContract.s_proposals(i);
+    //       expect(proposal.from).to.equal(member.address);
+    //       expect(proposal.target).to.equal(target);
+    //       expect(proposal.value).to.equal(value);
+    //       expect(proposal.func).to.equal(funcName);
+    //       // expect(proposal.data).to.equal(data);
+    //       expect(proposal.description).to.equal(description);
+    //       expect(proposal.executed).to.equal(false);
 
-          // TODO: Test expiration
+    //       // TODO: Test expiration
 
-          let votes = await signerContract.test_getVoteArrayInProposal(i);
-          expect(votes.length).to.equal(0);
-        }
-      });
-    });
+    //       let votes = await signerContract.test_getVoteArrayInProposal(i);
+    //       expect(votes.length).to.equal(0);
+    //     }
+    //   });
+    // });
 
-    /**
-     * TODO: Test voting after voting period has ended
-     */
-    describe("voteOnProposal()", () => {
-      it("Non-signer cannot vote", async () => {
-        await expect(myContract.voteOnProposal(0)).to.be.revertedWith(
-          "Multisig__UserIsNotSigner"
-        );
-      });
+    // /**
+    //  * TODO: Test voting after voting period has ended
+    //  */
+    // describe("voteOnProposal()", () => {
+    //   it("Non-signer cannot vote", async () => {
+    //     await expect(myContract.voteOnProposal(0)).to.be.revertedWith(
+    //       "Multisig__UserIsNotSigner"
+    //     );
+    //   });
 
-      it("Signer can vote on proposal", async () => {
-        expect(await signerContract.voteOnProposal(0))
-          .to.emit(signerContract, "SignerVoted")
-          .withArgs(member.address, 0);
+    //   it("Signer can vote on proposal", async () => {
+    //     expect(await signerContract.voteOnProposal(0))
+    //       .to.emit(signerContract, "SignerVoted")
+    //       .withArgs(member.address, 0);
 
-        let votes = await signerContract.test_getVoteArrayInProposal(0);
-        expect(votes[0]).to.equal(member.address);
-      });
-    });
+    //     let votes = await signerContract.test_getVoteArrayInProposal(0);
+    //     expect(votes[0]).to.equal(member.address);
+    //   });
+    // });
 
     describe("changeTimeout()", () => {
       it("Does not allow EOAs to change timeout", async () => {
@@ -188,76 +188,76 @@ describe("My Dapp", function () {
       });
     });
 
-    describe("AddSigner()", () => {
-      it("Non-signer cannot add signer to contract", async () => {
-        await expect(myContract.addSigner(notMember)).to.be.revertedWith(
-          "Multisig__UserIsNotSigner"
-        );
-      });
+    // describe("AddSigner()", () => {
+    //   it("Non-signer cannot add signer to contract", async () => {
+    //     await expect(myContract.addSigner(notMember)).to.be.revertedWith(
+    //       "Multisig__UserIsNotSigner"
+    //     );
+    //   });
 
-      it("Existing signer can add new signer to contract", async () => {
-        await expect(signerContract.addSigner(notMember))
-          .to.emit(signerContract, "SignerAdded")
-          .withArgs(notMember);
+    //   it("Existing signer can add new signer to contract", async () => {
+    //     await expect(signerContract.addSigner(notMember))
+    //       .to.emit(signerContract, "SignerAdded")
+    //       .withArgs(notMember);
 
-        expect(await signerContract.s_isSigner(notMember)).to.equal(true);
+    //     expect(await signerContract.s_isSigner(notMember)).to.equal(true);
 
-        expect(await signerContract.s_signers(3)).to.equal(notMember);
-      });
+    //     expect(await signerContract.s_signers(3)).to.equal(notMember);
+    //   });
 
-      it("Should fail adding existing signer", async () => {
-        await expect(signerContract.addSigner(notMember)).to.be.revertedWith(
-          "Multisig__UserAlreadySigner"
-        );
-      });
-    });
+    //   it("Should fail adding existing signer", async () => {
+    //     await expect(signerContract.addSigner(notMember)).to.be.revertedWith(
+    //       "Multisig__UserAlreadySigner"
+    //     );
+    //   });
+    // });
 
-    describe("findIndexOfSigner()", () => {
-      it("Finds correct index of signer in signer's array", async () => {
-        expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
-        expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
-        expect(await myContract.test_findIndexOfSigner(members[2])).to.equal(2);
-      });
-    });
+    // describe("findIndexOfSigner()", () => {
+    //   it("Finds correct index of signer in signer's array", async () => {
+    //     expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
+    //     expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
+    //     expect(await myContract.test_findIndexOfSigner(members[2])).to.equal(2);
+    //   });
+    // });
 
-    describe("removeFromSignersArray()", () => {
-      it("Removes correct index in signer's array", async () => {
-        await signerContract.test_removeFromSignersArray(3, notMember);
+    // describe("removeFromSignersArray()", () => {
+    //   it("Removes correct index in signer's array", async () => {
+    //     await signerContract.test_removeFromSignersArray(3, notMember);
 
-        for (let i = 0; i < members.length; i++) {
-          expect(await signerContract.s_signers(i)).to.equal(members[i]);
-        }
+    //     for (let i = 0; i < members.length; i++) {
+    //       expect(await signerContract.s_signers(i)).to.equal(members[i]);
+    //     }
 
-        // Undo this test for later tests
-        await signerContract.addSigner(notMember);
-      });
-    });
+    //     // Undo this test for later tests
+    //     await signerContract.addSigner(notMember);
+    //   });
+    // });
 
-    describe("removeSigner()", () => {
-      it("Non-signer cannot remove signer from contract", async () => {
-        await expect(myContract.removeSigner(notMember)).to.be.revertedWith(
-          "Multisig__UserIsNotSigner"
-        );
-      });
+    // describe("removeSigner()", () => {
+    //   it("Non-signer cannot remove signer from contract", async () => {
+    //     await expect(myContract.removeSigner(notMember)).to.be.revertedWith(
+    //       "Multisig__UserIsNotSigner"
+    //     );
+    //   });
 
-      it("Existing signer can remove signer from contract", async () => {
-        await expect(signerContract.removeSigner(notMember))
-          .to.emit(signerContract, "SignerRemoved")
-          .withArgs(notMember);
+    //   it("Existing signer can remove signer from contract", async () => {
+    //     await expect(signerContract.removeSigner(notMember))
+    //       .to.emit(signerContract, "SignerRemoved")
+    //       .withArgs(notMember);
 
-        expect(await signerContract.s_isSigner(notMember)).to.equal(false);
+    //     expect(await signerContract.s_isSigner(notMember)).to.equal(false);
 
-        expect((await signerContract.test_getSigners()).toString()).to.equal(
-          members.toString()
-        );
-      });
+    //     expect((await signerContract.test_getSigners()).toString()).to.equal(
+    //       members.toString()
+    //     );
+    //   });
 
-      it("Should fail adding existing signer", async () => {
-        await expect(
-          signerContract.addSigner(member.address)
-        ).to.be.revertedWith("Multisig__UserAlreadySigner");
-      });
-    });
+    //   it("Should fail adding existing signer", async () => {
+    //     await expect(
+    //       signerContract.addSigner(member.address)
+    //     ).to.be.revertedWith("Multisig__UserAlreadySigner");
+    //   });
+    // });
 
     // PROPOSALS WENT HERE
 

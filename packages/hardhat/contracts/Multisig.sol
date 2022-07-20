@@ -145,7 +145,7 @@ contract Multisig {
             revert Multisig__ProposalDidNotPass();
         }
 
-        if (_proposal.executed = true) {
+        if (_proposal.executed == true) {
             revert Multisig__AlreadyExecuted();
         }
 
