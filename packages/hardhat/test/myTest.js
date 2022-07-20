@@ -8,9 +8,7 @@ use(solidity);
 
 // FYI - This is the WETH addr on mainnet
 const notMember = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-const initialTimeout = 5;
 const maxProposalsSubmitted = 3;
-const newTimeout = 3;
 const minVotes = 1;
 
 describe("My Dapp", function () {
@@ -18,6 +16,7 @@ describe("My Dapp", function () {
   let signerContract;
   let messageContract;
   let member;
+  let currentTimeout = 5;
 
   let target;
   let value = 0;
@@ -62,7 +61,7 @@ describe("My Dapp", function () {
       members.push(member.address.toString());
 
       // imported members PLUS the second signer address
-      myContract = await Multisig.deploy(members, initialTimeout, minVotes);
+      myContract = await Multisig.deploy(members, currentTimeout, minVotes);
 
       signerContract = myContract.connect(member);
       console.log(`Multisig Adddress is ${signerContract.address}`);
@@ -90,7 +89,7 @@ describe("My Dapp", function () {
 
       it("Should have saved timeout properly", async () => {
         expect((await myContract.s_expirationTimeout()).toString()).to.equal(
-          initialTimeout.toString()
+          currentTimeout.toString()
         );
       });
     });
@@ -121,7 +120,6 @@ describe("My Dapp", function () {
           expect(proposal.target).to.equal(target);
           expect(proposal.value).to.equal(value);
           expect(proposal.func).to.equal(funcName);
-          // expect(proposal.data).to.equal(data);
           expect(proposal.description).to.equal(description);
           expect(proposal.executed).to.equal(false);
 
@@ -138,22 +136,68 @@ describe("My Dapp", function () {
      */
     describe("voteOnProposal()", () => {
       it("Non-signer cannot vote", async () => {
-        await expect(myContract.voteOnProposal(0)).to.be.revertedWith(
-          "Multisig__UserIsNotSigner"
+        await signerContract.submitProposal(
+          target,
+          value,
+          funcName,
+          data,
+          description
         );
+
+        let proposalIndex =
+          (await signerContract.test_getProposals()).length - 1;
+
+        await expect(
+          myContract.voteOnProposal(proposalIndex)
+        ).to.be.revertedWith("Multisig__UserIsNotSigner");
       });
 
-      it("Signer can vote on proposal", async () => {
-        expect(await signerContract.voteOnProposal(0))
-          .to.emit(signerContract, "SignerVoted")
-          .withArgs(member.address, 0);
+      // it("Signer can vote on proposal", async () => {
+      //   await signerContract.submitProposal(
+      //     target,
+      //     value,
+      //     funcName,
+      //     data,
+      //     description
+      //   );
 
-        let votes = await signerContract.test_getVoteArrayInProposal(0);
-        expect(votes[0]).to.equal(member.address);
+      //   let proposalIndex =
+      //     (await signerContract.test_getProposals()).length - 1;
+
+      //   expect(await signerContract.voteOnProposal(proposalIndex))
+      //     .to.emit(signerContract, "SignerVoted")
+      //     .withArgs(member.address, 0);
+
+      //   let votes = await signerContract.test_getVoteArrayInProposal(
+      //     proposalIndex
+      //   );
+      //   expect(votes[0]).to.equal(member.address);
+      // });
+
+      it("Cannot vote after proposal expires", async () => {
+        await signerContract.submitProposal(
+          target,
+          value,
+          funcName,
+          data,
+          description
+        );
+
+        let proposalIndex =
+          (await signerContract.test_getProposals()).length - 1;
+
+        // Wait for proposal voting period to end
+        await new Promise((r) => setTimeout(r, (currentTimeout + 1) * 1000));
+
+        await expect(
+          signerContract.voteOnProposal(proposalIndex)
+        ).to.be.revertedWith("Multisig__ProposalExpired");
       });
     });
 
     describe("changeTimeout()", () => {
+      let newTimeout = 3;
+
       it("Does not allow EOAs to change timeout", async () => {
         let threwError = false;
 
@@ -166,7 +210,7 @@ describe("My Dapp", function () {
         expect(threwError).to.equal(true);
       });
 
-      it("Changes timeout in contract", async () => {
+      it("Changes timeout in multisig", async () => {
         await signerContract.submitProposal(
           signerContract.address,
           0,
@@ -182,12 +226,14 @@ describe("My Dapp", function () {
         let proposalIndex = allProposals.length - 1;
 
         await signerContract.voteOnProposal(proposalIndex);
-        await new Promise((r) => setTimeout(r, initialTimeout * 1000));
+        await new Promise((r) => setTimeout(r, currentTimeout * 1000));
         await signerContract.executeProposal(proposalIndex);
 
         expect(await signerContract.s_expirationTimeout()).to.equal(
           newTimeout.toString()
         );
+
+        currentTimeout = newTimeout;
       });
     });
 
@@ -224,7 +270,7 @@ describe("My Dapp", function () {
         let proposalIndex = allProposals.length - 1;
 
         await signerContract.voteOnProposal(proposalIndex);
-        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+        await new Promise((r) => setTimeout(r, currentTimeout * 1000));
         await signerContract.executeProposal(proposalIndex);
 
         let signersArr = await signerContract.test_getSigners();
@@ -331,7 +377,7 @@ describe("My Dapp", function () {
         );
 
         await signerContract.voteOnProposal(proposalIndex);
-        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+        await new Promise((r) => setTimeout(r, currentTimeout * 1000));
         await signerContract.executeProposal(proposalIndex);
 
         let signersArr = await signerContract.test_getSigners();
@@ -394,7 +440,7 @@ describe("My Dapp", function () {
           (await signerContract.test_getProposals()).length - 1;
 
         // Wait for proposal voting period to end
-        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+        await new Promise((r) => setTimeout(r, currentTimeout * 1000));
 
         await expect(
           signerContract.executeProposal(proposalIndex)
@@ -414,7 +460,7 @@ describe("My Dapp", function () {
           (await signerContract.test_getProposals()).length - 1;
 
         await signerContract.voteOnProposal(proposalIndex);
-        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+        await new Promise((r) => setTimeout(r, currentTimeout * 1000));
 
         expect(await signerContract.executeProposal(proposalIndex))
           .to.emit(signerContract, "ProposalExecuted")
@@ -426,14 +472,13 @@ describe("My Dapp", function () {
 
     describe("setMinVotes()", () => {
       let newMinVotes = 2;
-      // TODO: Test EOA fail
+
       it("EOA fails to call setMinVotes() directly", async () => {
         await expect(
           signerContract.setMinVotes(newMinVotes)
         ).to.be.revertedWith("Multisig__OnlyContract");
       });
 
-      // TODO: Test direct
       it("test_setMinVotes()", async () => {
         await signerContract.test_setMinVotes(newMinVotes);
         let result = await signerContract.s_minVotes();
@@ -442,7 +487,6 @@ describe("My Dapp", function () {
         await signerContract.test_setMinVotes(1);
       });
 
-      // TODO: Test via multisig
       it("setMinVotes() via multisig", async () => {
         await signerContract.submitProposal(
           signerContract.address,
@@ -458,7 +502,7 @@ describe("My Dapp", function () {
           (await signerContract.test_getProposals()).length - 1;
         await signerContract.voteOnProposal(proposalIndex);
 
-        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+        await new Promise((r) => setTimeout(r, currentTimeout * 1000));
         await signerContract.executeProposal(proposalIndex);
 
         let result = await signerContract.s_minVotes();

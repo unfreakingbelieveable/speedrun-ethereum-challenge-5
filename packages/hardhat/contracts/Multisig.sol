@@ -25,14 +25,14 @@ contract Multisig {
     struct Proposal {
         address from;
         address target;
-        uint256 value;
-        string func;
-        bytes data;
-        string description;
         address[] voteYes;
+        uint256 value;
         uint256 expiration;
-        bool executed;
+        string func;
+        string description;
+        bytes data;
         bytes result;
+        bool executed;
     }
 
     uint256 public s_minVotes;
@@ -41,8 +41,6 @@ contract Multisig {
     uint256 public s_expirationTimeout;
     mapping(address => bool) public s_isSigner;
 
-    // TODO: Make setMinVotes OnlyContract
-    // TODO: Pack struct
     constructor(
         address[] memory _signers,
         uint256 _timeout,
