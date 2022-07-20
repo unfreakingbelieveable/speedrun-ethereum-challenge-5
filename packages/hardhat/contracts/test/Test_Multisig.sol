@@ -34,13 +34,23 @@ contract Test_Multisig is Multisig {
     }
 
     function test_removeSigner(address _signer) public {
-        removeSigner(_signer);
+        bytes memory _data = abi.encodeWithSignature(
+            "removeSigner(address)",
+            _signer
+        );
+        (bool success, ) = address(this).call(_data);
+        require(success, "Call on removeSigner failed");
     }
 
     function test_removeFromSignersArray(uint256 _index, address _signer)
         public
     {
-        _removeFromSignersArray(_index);
+        bytes memory _data = abi.encodeWithSignature(
+            "_removeFromSignersArray(uint256)",
+            _index
+        );
+        (bool success, ) = address(this).call(_data);
+        require(success, "Call on _removeFromSignersArray failed");
         s_isSigner[_signer] = false;
     }
 

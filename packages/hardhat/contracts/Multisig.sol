@@ -82,10 +82,15 @@ contract Multisig {
         emit SignerAdded(_signer);
     }
 
-    function removeSigner(address _signer) public {
+    function removeSigner(address _signer) public OnlyContract {
+        console.log("Removing signer ", _signer);
+        console.log("Signer status", s_isSigner[_signer]);
+
         if (!s_isSigner[_signer]) {
             revert Multisig__UserIsNotSigner();
         }
+
+        console.log("Did we survive the check?");
 
         uint256 removeIndex = findIndexOfSigner(_signer);
         _removeFromSignersArray(removeIndex);
@@ -164,9 +169,11 @@ contract Multisig {
 
     /**
      * @dev Splitting this out was done for testing purposes
+     * TODO: Could this be internal?
      */
     function _executeProposal(Proposal memory _proposal)
-        internal
+        public
+        OnlySigners
         returns (bytes memory)
     {
         // bytes memory _data = _encodeData(_proposal.func, _proposal.data);
@@ -201,7 +208,7 @@ contract Multisig {
     // Array operations Helper methods
     // ---------------------------------------------------------------
     function findIndexOfSigner(address _signer)
-        internal
+        public
         view
         returns (uint256 index)
     {
@@ -218,7 +225,7 @@ contract Multisig {
 
     // Shamelessly stolen from: https://solidity-by-example.org/array/
     // Last element copied over the element we want to delete, then we pop the last element
-    function _removeFromSignersArray(uint _index) internal OnlySigners {
+    function _removeFromSignersArray(uint _index) public OnlyContract {
         s_signers[_index] = s_signers[s_signers.length - 1];
         s_signers.pop();
     }

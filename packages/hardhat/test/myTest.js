@@ -8,9 +8,9 @@ use(solidity);
 // FYI - This is the WETH addr on mainnet
 const notMember = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const weth = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-const initialTimeout = 10;
+const initialTimeout = 5;
 const maxProposalsSubmitted = 3;
-const newTimeout = 5;
+const newTimeout = 3;
 
 describe("My Dapp", function () {
   let myContract;
@@ -149,47 +149,47 @@ describe("My Dapp", function () {
     //   });
     // });
 
-    // describe("changeTimeout()", () => {
-    //   it("Does not allow EOAs to change timeout", async () => {
-    //     let threwError = false;
+    describe("changeTimeout()", () => {
+      it("Does not allow EOAs to change timeout", async () => {
+        let threwError = false;
 
-    //     try {
-    //       await signerContract.changeTimeout(420);
-    //     } catch (error) {
-    //       threwError = true;
-    //     }
+        try {
+          await signerContract.changeTimeout(420);
+        } catch (error) {
+          threwError = true;
+        }
 
-    //     expect(threwError).to.equal(true);
-    //   });
+        expect(threwError).to.equal(true);
+      });
 
-    //   it("Changes timeout in contract", async () => {
-    //     await signerContract.submitProposal(
-    //       signerContract.address,
-    //       0,
-    //       "changeTimeout(uint256)",
-    //       signerContract.interface.encodeFunctionData("changeTimeout", [
-    //         newTimeout,
-    //       ]),
-    //       "Test to change timeout"
-    //     );
+      it("Changes timeout in contract", async () => {
+        await signerContract.submitProposal(
+          signerContract.address,
+          0,
+          "changeTimeout(uint256)",
+          signerContract.interface.encodeFunctionData("changeTimeout", [
+            newTimeout,
+          ]),
+          "Test to change timeout"
+        );
 
-    //     let allProposals = await signerContract.test_getProposals();
+        let allProposals = await signerContract.test_getProposals();
 
-    //     let proposalIndex = allProposals.length - 1;
+        let proposalIndex = allProposals.length - 1;
 
-    //     await signerContract.voteOnProposal(proposalIndex);
-    //     await new Promise((r) => setTimeout(r, initialTimeout * 1000));
-    //     await signerContract.executeProposal(proposalIndex);
+        await signerContract.voteOnProposal(proposalIndex);
+        await new Promise((r) => setTimeout(r, initialTimeout * 1000));
+        await signerContract.executeProposal(proposalIndex);
 
-    //     expect(await signerContract.s_expirationTimeout()).to.equal(
-    //       newTimeout.toString()
-    //     );
+        expect(await signerContract.s_expirationTimeout()).to.equal(
+          newTimeout.toString()
+        );
 
-    //     // expect(await signerContract.changeTimeout(newTimeout))
-    //     //   .to.emit(signerContract, "TimeoutChanged")
-    //     //   .withArgs(newTimeout.toString());
-    //   });
-    // });
+        // expect(await signerContract.changeTimeout(newTimeout))
+        //   .to.emit(signerContract, "TimeoutChanged")
+        //   .withArgs(newTimeout.toString());
+      });
+    });
 
     // describe("findIndexOfSigner()", () => {
     //   it("Finds correct index of signer in signer's array", async () => {
@@ -276,7 +276,7 @@ describe("My Dapp", function () {
       //   expect(threwError).to.equal(true);
       // });
 
-      it("Tests remove signers directly", async () => {
+      it("Tests removeSigners without multisig", async () => {
         // Add member we are going to remove
         await signerContract.test_addToSignersArray(notMember);
         let currSigners = await signerContract.test_getSigners();
@@ -297,44 +297,45 @@ describe("My Dapp", function () {
         expect(await signerContract.s_isSigner(notMember)).to.equal(false);
       });
 
-      // it("Existing signer can remove signer from contract", async () => {
-      //   // Undo this test for later tests
-      //   await signerContract.test_addToSignersArray(notMember);
-      //   let currSigners = await signerContract.test_getSigners();
-      //   expect(currSigners).to.include(notMember);
-      //   expect(await signerContract.s_isSigner(notMember)).to.equal(true);
+      it("Tests removeSigners with multisig", async () => {
+        // Add member we are going to remove
+        await signerContract.test_addToSignersArray(notMember);
+        let currSigners = await signerContract.test_getSigners();
+        expect(currSigners).to.include(notMember);
+        expect(await signerContract.s_isSigner(notMember)).to.equal(true);
 
-      //   await signerContract.submitProposal(
-      //     signerContract.address,
-      //     0,
-      //     "removeSigner(address)",
-      //     signerContract.interface.encodeFunctionData("removeSigner", [
-      //       notMember,
-      //     ]),
-      //     "Test to remove signer"
-      //   );
+        // Setup
+        await signerContract.submitProposal(
+          signerContract.address,
+          0,
+          "removeSigner(address)",
+          signerContract.interface.encodeFunctionData("removeSigner", [
+            notMember,
+          ]),
+          "Test to remove signer"
+        );
 
-      //   let allProposals = await signerContract.test_getProposals();
-      //   let proposalIndex = allProposals.length - 1;
+        let allProposals = await signerContract.test_getProposals();
+        let proposalIndex = allProposals.length - 1;
 
-      //   let proposal = await signerContract.s_proposals(proposalIndex);
+        let proposal = await signerContract.s_proposals(proposalIndex);
 
-      //   expect(proposal.target).to.equal(signerContract.address);
-      //   expect(proposal.func).to.equal("removeSigner(address)");
-      //   expect(proposal.data).to.equal(
-      //     signerContract.interface.encodeFunctionData("removeSigner", [
-      //       notMember,
-      //     ])
-      //   );
+        expect(proposal.target).to.equal(signerContract.address);
+        expect(proposal.func).to.equal("removeSigner(address)");
+        expect(proposal.data).to.equal(
+          signerContract.interface.encodeFunctionData("removeSigner", [
+            notMember,
+          ])
+        );
 
-      //   await signerContract.voteOnProposal(proposalIndex);
-      //   await new Promise((r) => setTimeout(r, newTimeout * 1000));
-      //   await signerContract.executeProposal(proposalIndex);
+        await signerContract.voteOnProposal(proposalIndex);
+        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+        await signerContract.executeProposal(proposalIndex);
 
-      //   // let signersArr = await signerContract.test_getSigners();
-      //   // expect(signersArr).not.include(notMember);
-      //   // expect(signersArr.length).to.equal(members.length);
-      // });
+        let signersArr = await signerContract.test_getSigners();
+        expect(signersArr).not.include(notMember);
+        expect(signersArr.length).to.equal(members.length);
+      });
     });
 
     // PROPOSALS WENT HERE
