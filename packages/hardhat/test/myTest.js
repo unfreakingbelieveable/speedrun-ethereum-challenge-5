@@ -339,8 +339,6 @@ describe("My Dapp", function () {
       });
     });
 
-    // PROPOSALS WENT HERE
-
     describe("test_executeProposal()", () => {
       it("Executes a proposal, bypassing multisig", async () => {
         await signerContract.test_executeProposal(
@@ -358,35 +356,71 @@ describe("My Dapp", function () {
       });
     });
 
-    // describe("executeProposal()", () => {
-    //   it("Does not allow non-signers to execute", async () => {
-    //     expect(myContract.executeProposal(0)).to.be.revertedWith(
-    //       "Multisig__UserIsNotSigner"
-    //     );
-    //   });
+    describe("executeProposal()", () => {
+      it("Does not allow non-signers to execute", async () => {
+        expect(myContract.executeProposal(0)).to.be.revertedWith(
+          "Multisig__UserIsNotSigner"
+        );
+      });
 
-    //   it("Tries to execute a proposal before voting period ends", async () => {
-    //     await expect(signerContract.executeProposal(1)).to.be.revertedWith(
-    //       "Multisig__VotingNotEnded"
-    //     );
-    //   });
+      it("Fails to execute a proposal before voting period ends", async () => {
+        await signerContract.submitProposal(
+          target,
+          value,
+          funcName,
+          data,
+          description
+        );
 
-    //   it("Tries to execute a proposal without minimum number of votes", async () => {
-    //     // Wait for proposal voting period to end
-    //     await new Promise((r) => setTimeout(r, newTimeout * 1000));
+        let proposalIndex =
+          (await signerContract.test_getProposals()).length - 1;
 
-    //     await expect(signerContract.executeProposal(2)).to.be.revertedWith(
-    //       "Multisig__ProposalDidNotPass"
-    //     );
-    //   });
+        await expect(
+          signerContract.executeProposal(proposalIndex)
+        ).to.be.revertedWith("Multisig__VotingNotEnded");
+      });
 
-    //   it("Executes a proposal via multisig", async () => {
-    //     expect(await signerContract.executeProposal(0))
-    //       .to.emit(signerContract, "ProposalExecuted")
-    //       .withArgs(0);
+      it("Tries to execute a proposal without minimum number of votes", async () => {
+        await signerContract.submitProposal(
+          target,
+          value,
+          funcName,
+          data,
+          description
+        );
 
-    //     expect(await messageContract.message()).to.equal(rawData);
-    //   });
-    // });
+        let proposalIndex =
+          (await signerContract.test_getProposals()).length - 1;
+
+        // Wait for proposal voting period to end
+        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+
+        await expect(
+          signerContract.executeProposal(proposalIndex)
+        ).to.be.revertedWith("Multisig__ProposalDidNotPass");
+      });
+
+      it("Executes a proposal via multisig", async () => {
+        await signerContract.submitProposal(
+          target,
+          value,
+          funcName,
+          data,
+          description
+        );
+
+        let proposalIndex =
+          (await signerContract.test_getProposals()).length - 1;
+
+        await signerContract.voteOnProposal(proposalIndex);
+        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+
+        expect(await signerContract.executeProposal(proposalIndex))
+          .to.emit(signerContract, "ProposalExecuted")
+          .withArgs(proposalIndex);
+
+        expect(await messageContract.message()).to.equal(rawData);
+      });
+    });
   });
 });
