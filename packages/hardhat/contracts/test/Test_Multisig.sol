@@ -65,12 +65,4 @@ contract Test_Multisig is Multisig {
 
         return _executeProposal(_newProposal);
     }
-
-    function test_encodeData(string memory _function, bytes memory _data)
-        public
-        pure
-        returns (bytes memory)
-    {
-        return _encodeData(_function, _data);
-    }
 }

@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity ^0.8.4;
 
 import "hardhat/console.sol";
 
@@ -57,11 +57,17 @@ contract Multisig {
         _;
     }
 
+    modifier OnlyContract() {
+        require(msg.sender == address(this));
+        _;
+    }
+
     // ---------------------------------------------------------------
     // Main Multisig Operations
     // TODO: Make these internal so only the contract can execute them
     // ---------------------------------------------------------------
-    function changeTimeout(uint256 _newTimeout) internal {
+    function changeTimeout(uint256 _newTimeout) public OnlyContract {
+        console.log("Chainging timeout to: ", _newTimeout);
         s_expirationTimeout = _newTimeout;
         emit TimeoutChanged(_newTimeout);
     }
@@ -112,7 +118,7 @@ contract Multisig {
             target: _target,
             value: _value,
             func: _function,
-            data: abi.encode(_data),
+            data: _data,
             description: _description,
             voteYes: new address[](0),
             expiration: block.timestamp + s_expirationTimeout,
@@ -163,32 +169,21 @@ contract Multisig {
         internal
         returns (bytes memory)
     {
-        bytes memory _data = _encodeData(_proposal.func, _proposal.data);
+        // bytes memory _data = _encodeData(_proposal.func, _proposal.data);
 
         console.log("Target is ", _proposal.target);
         console.log("Data is ", string(_proposal.data));
-        console.log("Encoded data is ", string(_data));
+        // console.log("Encoded data is ", string(_data));
 
         (bool success, bytes memory result) = _proposal.target.call{
             value: _proposal.value
-        }(_data);
+        }(_proposal.data);
 
         if (!success) {
             revert Multisig__ProposalExecutionFailed();
         }
 
         return result;
-    }
-
-    /**
-     * @dev Splitting this out was done for testing purposes
-     */
-    function _encodeData(string memory _function, bytes memory _data)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodePacked(bytes4(keccak256(bytes(_function))), _data);
     }
 
     // ---------------------------------------------------------------

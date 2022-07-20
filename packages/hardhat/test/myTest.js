@@ -61,6 +61,7 @@ describe("My Dapp", function () {
       myContract = await Multisig.deploy(members, initialTimeout);
 
       signerContract = myContract.connect(member);
+      console.log(`Multisig Adddress is ${signerContract.address}`);
     });
 
     describe("Constructor()", () => {
@@ -153,7 +154,7 @@ describe("My Dapp", function () {
         let threwError = false;
 
         try {
-          await myContract.changeTimeout(420);
+          await signerContract.changeTimeout(420);
         } catch (error) {
           threwError = true;
         }
@@ -166,17 +167,19 @@ describe("My Dapp", function () {
           signerContract.address,
           0,
           "changeTimeout(uint256)",
-          ethers.utils.toUtf8Bytes(newTimeout),
+          signerContract.interface.encodeFunctionData("changeTimeout", [
+            newTimeout,
+          ]),
           "Test to change timeout"
         );
 
         let allProposals = await signerContract.test_getProposals();
 
-        let thisProposal = allProposals.length - 1;
+        let proposalIndex = allProposals.length - 1;
 
-        await signerContract.voteOnProposal(thisProposal);
+        await signerContract.voteOnProposal(proposalIndex);
         await new Promise((r) => setTimeout(r, initialTimeout * 1000));
-        await signerContract.executeProposal(thisProposal);
+        await signerContract.executeProposal(proposalIndex);
 
         expect(await signerContract.s_expirationTimeout()).to.equal(
           newTimeout.toString()
@@ -260,16 +263,6 @@ describe("My Dapp", function () {
     // });
 
     // PROPOSALS WENT HERE
-
-    // TODO: Make this work
-    // describe("_encodeData()", () => {
-    //   it("Encodes data for execution", async () => {
-    //     console.log(await signerContract.test_encodeData(funcName, data));
-    //     expect(await signerContract.test_encodeData(funcName, data)).to.equal(
-    //       encodedData
-    //     );
-    //   });
-    // });
 
     // describe("_executeProposal()", () => {
     //   it("Executes a proposal, bypassing multisig", async () => {
