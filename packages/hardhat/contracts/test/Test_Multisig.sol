@@ -74,7 +74,7 @@ contract Test_Multisig is Multisig {
             target: _target,
             value: _value,
             func: _function,
-            data: abi.encode(_data),
+            data: _data,
             description: _description,
             voteYes: new address[](0),
             expiration: block.timestamp + s_expirationTimeout,
