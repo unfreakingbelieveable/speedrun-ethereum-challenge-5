@@ -2,15 +2,16 @@ const { ethers } = require("hardhat");
 const { use, expect } = require("chai");
 const { solidity } = require("ethereum-waffle");
 const { members } = require("../hardhat-helper-config");
+const { prop } = require("ramda");
 
 use(solidity);
 
 // FYI - This is the WETH addr on mainnet
 const notMember = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-const weth = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const initialTimeout = 5;
 const maxProposalsSubmitted = 3;
 const newTimeout = 3;
+const minVotes = 1;
 
 describe("My Dapp", function () {
   let myContract;
@@ -61,7 +62,7 @@ describe("My Dapp", function () {
       members.push(member.address.toString());
 
       // imported members PLUS the second signer address
-      myContract = await Multisig.deploy(members, initialTimeout);
+      myContract = await Multisig.deploy(members, initialTimeout, minVotes);
 
       signerContract = myContract.connect(member);
       console.log(`Multisig Adddress is ${signerContract.address}`);
@@ -420,6 +421,50 @@ describe("My Dapp", function () {
           .withArgs(proposalIndex);
 
         expect(await messageContract.message()).to.equal(rawData);
+      });
+    });
+
+    describe("setMinVotes()", () => {
+      let newMinVotes = 2;
+      // TODO: Test EOA fail
+      it("EOA fails to call setMinVotes() directly", async () => {
+        await expect(
+          signerContract.setMinVotes(newMinVotes)
+        ).to.be.revertedWith("Multisig__OnlyContract");
+      });
+
+      // TODO: Test direct
+      it("test_setMinVotes()", async () => {
+        await signerContract.test_setMinVotes(newMinVotes);
+        let result = await signerContract.s_minVotes();
+        expect(result).to.equal(newMinVotes);
+
+        await signerContract.test_setMinVotes(1);
+      });
+
+      // TODO: Test via multisig
+      it("setMinVotes() via multisig", async () => {
+        await signerContract.submitProposal(
+          signerContract.address,
+          0,
+          "setMinVotes(uint256)",
+          signerContract.interface.encodeFunctionData("setMinVotes", [
+            newMinVotes,
+          ]),
+          "Test setting minimum votes via multisig"
+        );
+
+        let proposalIndex =
+          (await signerContract.test_getProposals()).length - 1;
+        await signerContract.voteOnProposal(proposalIndex);
+
+        await new Promise((r) => setTimeout(r, newTimeout * 1000));
+        await signerContract.executeProposal(proposalIndex);
+
+        let result = await signerContract.s_minVotes();
+        expect(result).to.equal(newMinVotes);
+
+        await signerContract.test_setMinVotes(minVotes);
       });
     });
   });

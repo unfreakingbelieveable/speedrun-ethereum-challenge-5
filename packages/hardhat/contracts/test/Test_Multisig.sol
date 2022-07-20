@@ -4,9 +4,11 @@ pragma solidity >=0.8.0 <0.9.0;
 import "../Multisig.sol";
 
 contract Test_Multisig is Multisig {
-    constructor(address[] memory _signers, uint256 _timeout)
-        Multisig(_signers, _timeout)
-    {}
+    constructor(
+        address[] memory _signers,
+        uint256 _timeout,
+        uint256 _minVotes
+    ) Multisig(_signers, _timeout, _minVotes) {}
 
     function test_getSigners() public view returns (address[] memory) {
         return s_signers;
@@ -60,6 +62,15 @@ contract Test_Multisig is Multisig {
         returns (address[] memory)
     {
         return s_proposals[_index].voteYes;
+    }
+
+    function test_setMinVotes(uint256 _minVotes) public {
+        bytes memory _data = abi.encodeWithSignature(
+            "setMinVotes(uint256)",
+            _minVotes
+        );
+        (bool success, ) = address(this).call(_data);
+        require(success, "Call on setMinVotes() failed");
     }
 
     function test_executeProposal(

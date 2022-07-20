@@ -6,6 +6,7 @@ import "hardhat/console.sol";
 error Multisig__VotingNotEnded();
 error Multisig__ProposalExpired();
 error Multisig__UserIsNotSigner();
+error Multisig__OnlyContract();
 error Multisig__AlreadyExecuted();
 error Multisig__UserAlreadySigner();
 error Multisig__ProposalDidNotPass();
@@ -19,6 +20,7 @@ contract Multisig {
     event SignerRemoved(address indexed removedSigner);
     event SignerVoted(address indexed signer, uint256 indexed index);
     event ProposalAdded(address indexed from, string title, uint256 expiration);
+    event MinimumVotesChanged(uint256 indexed amount);
 
     struct Proposal {
         address from;
@@ -39,11 +41,16 @@ contract Multisig {
     uint256 public s_expirationTimeout;
     mapping(address => bool) public s_isSigner;
 
-    // TODO: Make minvotes dynamic
-    constructor(address[] memory _signers, uint256 _timeout) {
+    // TODO: Make setMinVotes OnlyContract
+    // TODO: Pack struct
+    constructor(
+        address[] memory _signers,
+        uint256 _timeout,
+        uint256 _minVotes
+    ) {
         s_expirationTimeout = _timeout;
         s_signers = _signers;
-        s_minVotes = 1;
+        s_minVotes = _minVotes;
 
         for (uint256 i = 0; i < _signers.length; i++) {
             s_isSigner[_signers[i]] = true;
@@ -58,13 +65,14 @@ contract Multisig {
     }
 
     modifier OnlyContract() {
-        require(msg.sender == address(this));
+        if (msg.sender != address(this)) {
+            revert Multisig__OnlyContract();
+        }
         _;
     }
 
     // ---------------------------------------------------------------
     // Main Multisig Operations
-    // TODO: Make these internal so only the contract can execute them
     // ---------------------------------------------------------------
     function changeTimeout(uint256 _newTimeout) public OnlyContract {
         console.log("Chainging timeout to: ", _newTimeout);
@@ -96,6 +104,11 @@ contract Multisig {
         _removeFromSignersArray(removeIndex);
         s_isSigner[_signer] = false;
         emit SignerRemoved(_signer);
+    }
+
+    function setMinVotes(uint256 _minVotes) public OnlyContract {
+        s_minVotes = _minVotes;
+        emit MinimumVotesChanged(_minVotes);
     }
 
     /**
@@ -169,7 +182,6 @@ contract Multisig {
 
     /**
      * @dev Splitting this out was done for testing purposes
-     * TODO: Could this be internal?
      */
     function _executeProposal(Proposal memory _proposal)
         public
