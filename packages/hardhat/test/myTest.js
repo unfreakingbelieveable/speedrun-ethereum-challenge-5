@@ -64,221 +64,278 @@ describe("My Dapp", function () {
       console.log(`Multisig Adddress is ${signerContract.address}`);
     });
 
-    describe("Constructor()", () => {
-      it("Should have saved signers to array properly", async function () {
-        let i;
-        for (i = 0; i < members.length; i++) {
-          expect(await myContract.s_signers(i)).to.equal(members[i]);
-        }
+    // describe("Constructor()", () => {
+    //   it("Should have saved signers to array properly", async function () {
+    //     let i;
+    //     for (i = 0; i < members.length; i++) {
+    //       expect(await myContract.s_signers(i)).to.equal(members[i]);
+    //     }
 
-        // Ensure there's no extra members added
-        i += 1;
-        await expect(myContract.s_signers(i)).to.be.reverted;
-      });
+    //     // Ensure there's no extra members added
+    //     i += 1;
+    //     await expect(myContract.s_signers(i)).to.be.reverted;
+    //   });
 
-      it("Should have updated signers mapping properly", async () => {
-        members.forEach(async (member) => {
-          expect(await myContract.s_isSigner(member)).to.equal(true);
-        });
+    //   it("Should have updated signers mapping properly", async () => {
+    //     members.forEach(async (member) => {
+    //       expect(await myContract.s_isSigner(member)).to.equal(true);
+    //     });
 
-        expect(await myContract.s_isSigner(notMember)).to.equal(false);
-      });
+    //     expect(await myContract.s_isSigner(notMember)).to.equal(false);
+    //   });
 
-      it("Should have saved timeout properly", async () => {
-        expect((await myContract.s_expirationTimeout()).toString()).to.equal(
-          initialTimeout.toString()
-        );
-      });
-    });
+    //   it("Should have saved timeout properly", async () => {
+    //     expect((await myContract.s_expirationTimeout()).toString()).to.equal(
+    //       initialTimeout.toString()
+    //     );
+    //   });
+    // });
 
-    describe("submitProposal()", () => {
-      it("Does not allow non-signer to submit proposal", async () => {
-        await expect(
-          myContract.submitProposal(target, value, funcName, data, description)
-        ).to.be.revertedWith("Multisig__UserIsNotSigner");
-      });
+    // describe("submitProposal()", () => {
+    //   it("Does not allow non-signer to submit proposal", async () => {
+    //     await expect(
+    //       myContract.submitProposal(target, value, funcName, data, description)
+    //     ).to.be.revertedWith("Multisig__UserIsNotSigner");
+    //   });
 
-      it("Submits proposal", async () => {
-        for (let i = 0; i < maxProposalsSubmitted; i++) {
-          expect(
-            await signerContract.submitProposal(
-              target,
-              value,
-              funcName,
-              data,
-              description
-            )
-          )
-            .to.emit(signerContract, "ProposalAdded")
-            .withArgs(member.address, description, Number);
+    //   it("Submits proposal", async () => {
+    //     for (let i = 0; i < maxProposalsSubmitted; i++) {
+    //       expect(
+    //         await signerContract.submitProposal(
+    //           target,
+    //           value,
+    //           funcName,
+    //           data,
+    //           description
+    //         )
+    //       )
+    //         .to.emit(signerContract, "ProposalAdded")
+    //         .withArgs(member.address, description, Number);
 
-          let proposal = await signerContract.s_proposals(i);
-          expect(proposal.from).to.equal(member.address);
-          expect(proposal.target).to.equal(target);
-          expect(proposal.value).to.equal(value);
-          expect(proposal.func).to.equal(funcName);
-          // expect(proposal.data).to.equal(data);
-          expect(proposal.description).to.equal(description);
-          expect(proposal.executed).to.equal(false);
+    //       let proposal = await signerContract.s_proposals(i);
+    //       expect(proposal.from).to.equal(member.address);
+    //       expect(proposal.target).to.equal(target);
+    //       expect(proposal.value).to.equal(value);
+    //       expect(proposal.func).to.equal(funcName);
+    //       // expect(proposal.data).to.equal(data);
+    //       expect(proposal.description).to.equal(description);
+    //       expect(proposal.executed).to.equal(false);
 
-          // TODO: Test expiration
+    //       // TODO: Test expiration
 
-          let votes = await signerContract.test_getVoteArrayInProposal(i);
-          expect(votes.length).to.equal(0);
-        }
-      });
-    });
+    //       let votes = await signerContract.test_getVoteArrayInProposal(i);
+    //       expect(votes.length).to.equal(0);
+    //     }
+    //   });
+    // });
 
-    /**
-     * TODO: Test voting after voting period has ended
-     */
-    describe("voteOnProposal()", () => {
-      it("Non-signer cannot vote", async () => {
-        await expect(myContract.voteOnProposal(0)).to.be.revertedWith(
-          "Multisig__UserIsNotSigner"
-        );
-      });
-
-      it("Signer can vote on proposal", async () => {
-        expect(await signerContract.voteOnProposal(0))
-          .to.emit(signerContract, "SignerVoted")
-          .withArgs(member.address, 0);
-
-        let votes = await signerContract.test_getVoteArrayInProposal(0);
-        expect(votes[0]).to.equal(member.address);
-      });
-    });
-
-    describe("changeTimeout()", () => {
-      it("Does not allow EOAs to change timeout", async () => {
-        let threwError = false;
-
-        try {
-          await signerContract.changeTimeout(420);
-        } catch (error) {
-          threwError = true;
-        }
-
-        expect(threwError).to.equal(true);
-      });
-
-      it("Changes timeout in contract", async () => {
-        await signerContract.submitProposal(
-          signerContract.address,
-          0,
-          "changeTimeout(uint256)",
-          signerContract.interface.encodeFunctionData("changeTimeout", [
-            newTimeout,
-          ]),
-          "Test to change timeout"
-        );
-
-        let allProposals = await signerContract.test_getProposals();
-
-        let proposalIndex = allProposals.length - 1;
-
-        await signerContract.voteOnProposal(proposalIndex);
-        await new Promise((r) => setTimeout(r, initialTimeout * 1000));
-        await signerContract.executeProposal(proposalIndex);
-
-        expect(await signerContract.s_expirationTimeout()).to.equal(
-          newTimeout.toString()
-        );
-
-        // expect(await signerContract.changeTimeout(newTimeout))
-        //   .to.emit(signerContract, "TimeoutChanged")
-        //   .withArgs(newTimeout.toString());
-      });
-    });
-
-    describe("findIndexOfSigner()", () => {
-      it("Finds correct index of signer in signer's array", async () => {
-        expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
-        expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
-      });
-    });
-
-    describe("AddSigner()", () => {
-      it("Non-signer cannot add signer to contract", async () => {
-        it("Does not allow EOAs to change timeout", async () => {
-          let threwError = false;
-
-          try {
-            await signerContract.addSigner(notMember);
-          } catch (error) {
-            threwError = true;
-          }
-
-          expect(threwError).to.equal(true);
-        });
-      });
-
-      it("Existing signer can add new signer to contract", async () => {
-        await signerContract.submitProposal(
-          signerContract.address,
-          0,
-          "addSigner(address)",
-          signerContract.interface.encodeFunctionData("addSigner", [notMember]),
-          "Test to change timeout"
-        );
-
-        let allProposals = await signerContract.test_getProposals();
-
-        let proposalIndex = allProposals.length - 1;
-
-        await signerContract.voteOnProposal(proposalIndex);
-        await new Promise((r) => setTimeout(r, newTimeout * 1000));
-        await signerContract.executeProposal(proposalIndex);
-
-        let signersArr = await signerContract.test_getSigners();
-        expect(signersArr).to.include(notMember);
-        expect(signersArr.length).to.equal(members.length + 1);
-      });
-    });
-
-    describe("removeFromSignersArray()", () => {
-      it("Removes correct index in signer's array", async () => {
-        await signerContract.test_removeFromSignersArray(3, notMember);
-
-        let currSigners = await signerContract.test_getSigners();
-
-        console.log(currSigners);
-
-        for (let i = 0; i < members.length; i++) {
-          expect(currSigners).to.include(members[i]);
-        }
-        expect(currSigners).not.include(notMember);
-
-        // Undo this test for later tests
-        await signerContract.test_addSigner(notMember);
-      });
-    });
-
-    // describe("removeSigner()", () => {
-    //   it("Non-signer cannot remove signer from contract", async () => {
-    //     await expect(myContract.removeSigner(notMember)).to.be.revertedWith(
+    // /**
+    //  * TODO: Test voting after voting period has ended
+    //  */
+    // describe("voteOnProposal()", () => {
+    //   it("Non-signer cannot vote", async () => {
+    //     await expect(myContract.voteOnProposal(0)).to.be.revertedWith(
     //       "Multisig__UserIsNotSigner"
     //     );
     //   });
 
-    //   it("Existing signer can remove signer from contract", async () => {
-    //     await expect(signerContract.removeSigner(notMember))
-    //       .to.emit(signerContract, "SignerRemoved")
-    //       .withArgs(notMember);
+    //   it("Signer can vote on proposal", async () => {
+    //     expect(await signerContract.voteOnProposal(0))
+    //       .to.emit(signerContract, "SignerVoted")
+    //       .withArgs(member.address, 0);
 
-    //     expect(await signerContract.s_isSigner(notMember)).to.equal(false);
-
-    //     expect((await signerContract.test_getSigners()).toString()).to.equal(
-    //       members.toString()
-    //     );
-    //   });
-
-    //   it("Should fail adding existing signer", async () => {
-    //     await expect(
-    //       signerContract.addSigner(member.address)
-    //     ).to.be.revertedWith("Multisig__UserAlreadySigner");
+    //     let votes = await signerContract.test_getVoteArrayInProposal(0);
+    //     expect(votes[0]).to.equal(member.address);
     //   });
     // });
+
+    // describe("changeTimeout()", () => {
+    //   it("Does not allow EOAs to change timeout", async () => {
+    //     let threwError = false;
+
+    //     try {
+    //       await signerContract.changeTimeout(420);
+    //     } catch (error) {
+    //       threwError = true;
+    //     }
+
+    //     expect(threwError).to.equal(true);
+    //   });
+
+    //   it("Changes timeout in contract", async () => {
+    //     await signerContract.submitProposal(
+    //       signerContract.address,
+    //       0,
+    //       "changeTimeout(uint256)",
+    //       signerContract.interface.encodeFunctionData("changeTimeout", [
+    //         newTimeout,
+    //       ]),
+    //       "Test to change timeout"
+    //     );
+
+    //     let allProposals = await signerContract.test_getProposals();
+
+    //     let proposalIndex = allProposals.length - 1;
+
+    //     await signerContract.voteOnProposal(proposalIndex);
+    //     await new Promise((r) => setTimeout(r, initialTimeout * 1000));
+    //     await signerContract.executeProposal(proposalIndex);
+
+    //     expect(await signerContract.s_expirationTimeout()).to.equal(
+    //       newTimeout.toString()
+    //     );
+
+    //     // expect(await signerContract.changeTimeout(newTimeout))
+    //     //   .to.emit(signerContract, "TimeoutChanged")
+    //     //   .withArgs(newTimeout.toString());
+    //   });
+    // });
+
+    // describe("findIndexOfSigner()", () => {
+    //   it("Finds correct index of signer in signer's array", async () => {
+    //     expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
+    //     expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
+    //   });
+    // });
+
+    // describe("AddSigner()", () => {
+    //   it("Does not allow EOAs to add signer", async () => {
+    //     let threwError = false;
+
+    //     try {
+    //       await signerContract.addSigner(notMember);
+    //     } catch (error) {
+    //       threwError = true;
+    //     }
+
+    //     expect(threwError).to.equal(true);
+    //   });
+
+    //   it("Existing signer can add new signer to contract", async () => {
+    //     await signerContract.submitProposal(
+    //       signerContract.address,
+    //       0,
+    //       "addSigner(address)",
+    //       signerContract.interface.encodeFunctionData("addSigner", [notMember]),
+    //       "Test to add signer"
+    //     );
+
+    //     let allProposals = await signerContract.test_getProposals();
+    //     let proposalIndex = allProposals.length - 1;
+
+    //     await signerContract.voteOnProposal(proposalIndex);
+    //     await new Promise((r) => setTimeout(r, newTimeout * 1000));
+    //     await signerContract.executeProposal(proposalIndex);
+
+    //     let signersArr = await signerContract.test_getSigners();
+    //     expect(signersArr).to.include(notMember);
+    //     expect(signersArr.length).to.equal(members.length + 1);
+    //   });
+    // });
+
+    describe("removeFromSignersArray()", () => {
+      it("Removes correct index in signer's array", async () => {
+        // Add member we are going to remove
+        await signerContract.test_addToSignersArray(notMember);
+        let currSigners = await signerContract.test_getSigners();
+        expect(currSigners).to.include(notMember);
+        expect(await signerContract.s_isSigner(notMember)).to.equal(true);
+
+        let initalMembers = await signerContract.test_getSigners();
+        let memberIndex = await signerContract.test_findIndexOfSigner(
+          notMember
+        );
+        expect(currSigners[memberIndex]).to.equal(notMember);
+
+        await signerContract.test_removeFromSignersArray(
+          memberIndex,
+          notMember
+        );
+
+        currSigners = await signerContract.test_getSigners();
+
+        members.forEach((member) => {
+          expect(currSigners).to.include(member);
+        });
+
+        expect(currSigners).not.include(notMember);
+        expect(currSigners.length).to.equal(initalMembers.length - 1);
+      });
+    });
+
+    describe("removeSigner()", () => {
+      // it("Does not allow EOAs to remove signer", async () => {
+      //   let threwError = false;
+
+      //   try {
+      //     await signerContract.removeSigner(notMember);
+      //   } catch (error) {
+      //     threwError = true;
+      //   }
+
+      //   expect(threwError).to.equal(true);
+      // });
+
+      it("Tests remove signers directly", async () => {
+        // Add member we are going to remove
+        await signerContract.test_addToSignersArray(notMember);
+        let currSigners = await signerContract.test_getSigners();
+        expect(currSigners).to.include(notMember);
+        expect(await signerContract.s_isSigner(notMember)).to.equal(true);
+
+        let initalMembers = await signerContract.test_getSigners();
+
+        await signerContract.test_removeSigner(notMember);
+
+        currSigners = await signerContract.test_getSigners();
+        members.forEach((member) => {
+          expect(currSigners).to.include(member);
+        });
+
+        expect(currSigners).not.include(notMember);
+        expect(currSigners.length).to.equal(initalMembers.length - 1);
+        expect(await signerContract.s_isSigner(notMember)).to.equal(false);
+      });
+
+      // it("Existing signer can remove signer from contract", async () => {
+      //   // Undo this test for later tests
+      //   await signerContract.test_addToSignersArray(notMember);
+      //   let currSigners = await signerContract.test_getSigners();
+      //   expect(currSigners).to.include(notMember);
+      //   expect(await signerContract.s_isSigner(notMember)).to.equal(true);
+
+      //   await signerContract.submitProposal(
+      //     signerContract.address,
+      //     0,
+      //     "removeSigner(address)",
+      //     signerContract.interface.encodeFunctionData("removeSigner", [
+      //       notMember,
+      //     ]),
+      //     "Test to remove signer"
+      //   );
+
+      //   let allProposals = await signerContract.test_getProposals();
+      //   let proposalIndex = allProposals.length - 1;
+
+      //   let proposal = await signerContract.s_proposals(proposalIndex);
+
+      //   expect(proposal.target).to.equal(signerContract.address);
+      //   expect(proposal.func).to.equal("removeSigner(address)");
+      //   expect(proposal.data).to.equal(
+      //     signerContract.interface.encodeFunctionData("removeSigner", [
+      //       notMember,
+      //     ])
+      //   );
+
+      //   await signerContract.voteOnProposal(proposalIndex);
+      //   await new Promise((r) => setTimeout(r, newTimeout * 1000));
+      //   await signerContract.executeProposal(proposalIndex);
+
+      //   // let signersArr = await signerContract.test_getSigners();
+      //   // expect(signersArr).not.include(notMember);
+      //   // expect(signersArr.length).to.equal(members.length);
+      // });
+    });
 
     // PROPOSALS WENT HERE
 

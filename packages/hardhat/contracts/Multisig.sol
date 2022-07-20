@@ -82,7 +82,7 @@ contract Multisig {
         emit SignerAdded(_signer);
     }
 
-    function removeSigner(address _signer) external OnlySigners {
+    function removeSigner(address _signer) public {
         if (!s_isSigner[_signer]) {
             revert Multisig__UserIsNotSigner();
         }
