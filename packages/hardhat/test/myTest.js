@@ -24,12 +24,6 @@ describe("My Dapp", function () {
   let rawData = "Hi there!";
   let data;
   let description = "From submitProposal() tests";
-  // let encodedData = "0xd0e30db0";
-
-  let iface = new ethers.utils.Interface([
-    "function changeMessage(string newMessage)",
-  ]);
-  let encodedData = iface.encodeFunctionData("changeMessage", [rawData]);
 
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
   before((done) => {
@@ -144,27 +138,27 @@ describe("My Dapp", function () {
         ).to.be.revertedWith("Multisig__UserIsNotSigner");
       });
 
-      // it("Signer can vote on proposal", async () => {
-      //   await signerContract.submitProposal(
-      //     target,
-      //     value,
-      //     funcName,
-      //     data,
-      //     description
-      //   );
+      it("Signer can vote on proposal", async () => {
+        await signerContract.submitProposal(
+          target,
+          value,
+          funcName,
+          data,
+          description
+        );
 
-      //   let proposalIndex =
-      //     (await signerContract.test_getProposals()).length - 1;
+        let proposalIndex =
+          (await signerContract.test_getProposals()).length - 1;
 
-      //   expect(await signerContract.voteOnProposal(proposalIndex))
-      //     .to.emit(signerContract, "SignerVoted")
-      //     .withArgs(member.address, 0);
+        expect(await signerContract.voteOnProposal(proposalIndex))
+          .to.emit(signerContract, "SignerVoted")
+          .withArgs(member.address, proposalIndex);
 
-      //   let votes = await signerContract.test_getVoteArrayInProposal(
-      //     proposalIndex
-      //   );
-      //   expect(votes[0]).to.equal(member.address);
-      // });
+        let votes = await signerContract.test_getVoteArrayInProposal(
+          proposalIndex
+        );
+        expect(votes[0]).to.equal(member.address);
+      });
 
       it("Cannot vote after proposal expires", async () => {
         await signerContract.submitProposal(
