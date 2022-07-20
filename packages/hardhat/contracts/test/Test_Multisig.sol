@@ -12,6 +12,11 @@ contract Test_Multisig is Multisig {
         return s_signers;
     }
 
+    function test_addSigner(address _signer) public {
+        s_signers.push(_signer);
+        s_isSigner[_signer] = true;
+    }
+
     function test_getProposals() public view returns (Proposal[] memory) {
         return s_proposals;
     }
@@ -31,7 +36,7 @@ contract Test_Multisig is Multisig {
     function test_removeFromSignersArray(uint256 _index, address _signer)
         public
     {
-        removeFromSignersArray(_index);
+        _removeFromSignersArray(_index);
         s_isSigner[_signer] = false;
     }
 

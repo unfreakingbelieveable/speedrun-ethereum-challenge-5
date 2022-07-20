@@ -88,7 +88,7 @@ contract Multisig {
         }
 
         uint256 removeIndex = findIndexOfSigner(_signer);
-        removeFromSignersArray(removeIndex);
+        _removeFromSignersArray(removeIndex);
         s_isSigner[_signer] = false;
         emit SignerRemoved(_signer);
     }
@@ -218,7 +218,7 @@ contract Multisig {
 
     // Shamelessly stolen from: https://solidity-by-example.org/array/
     // Last element copied over the element we want to delete, then we pop the last element
-    function removeFromSignersArray(uint _index) internal OnlySigners {
+    function _removeFromSignersArray(uint _index) internal OnlySigners {
         s_signers[_index] = s_signers[s_signers.length - 1];
         s_signers.pop();
     }

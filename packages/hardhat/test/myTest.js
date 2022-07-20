@@ -191,6 +191,13 @@ describe("My Dapp", function () {
       });
     });
 
+    describe("findIndexOfSigner()", () => {
+      it("Finds correct index of signer in signer's array", async () => {
+        expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
+        expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
+      });
+    });
+
     describe("AddSigner()", () => {
       it("Non-signer cannot add signer to contract", async () => {
         it("Does not allow EOAs to change timeout", async () => {
@@ -223,30 +230,29 @@ describe("My Dapp", function () {
         await new Promise((r) => setTimeout(r, newTimeout * 1000));
         await signerContract.executeProposal(proposalIndex);
 
-        expect(await signerContract.test_getSigners()).to.include(notMember);
+        let signersArr = await signerContract.test_getSigners();
+        expect(signersArr).to.include(notMember);
+        expect(signersArr.length).to.equal(members.length + 1);
       });
     });
 
-    // describe("findIndexOfSigner()", () => {
-    //   it("Finds correct index of signer in signer's array", async () => {
-    //     expect(await myContract.test_findIndexOfSigner(members[0])).to.equal(0);
-    //     expect(await myContract.test_findIndexOfSigner(members[1])).to.equal(1);
-    //     expect(await myContract.test_findIndexOfSigner(members[2])).to.equal(2);
-    //   });
-    // });
+    describe("removeFromSignersArray()", () => {
+      it("Removes correct index in signer's array", async () => {
+        await signerContract.test_removeFromSignersArray(3, notMember);
 
-    // describe("removeFromSignersArray()", () => {
-    //   it("Removes correct index in signer's array", async () => {
-    //     await signerContract.test_removeFromSignersArray(3, notMember);
+        let currSigners = await signerContract.test_getSigners();
 
-    //     for (let i = 0; i < members.length; i++) {
-    //       expect(await signerContract.s_signers(i)).to.equal(members[i]);
-    //     }
+        console.log(currSigners);
 
-    //     // Undo this test for later tests
-    //     await signerContract.addSigner(notMember);
-    //   });
-    // });
+        for (let i = 0; i < members.length; i++) {
+          expect(currSigners).to.include(members[i]);
+        }
+        expect(currSigners).not.include(notMember);
+
+        // Undo this test for later tests
+        await signerContract.test_addSigner(notMember);
+      });
+    });
 
     // describe("removeSigner()", () => {
     //   it("Non-signer cannot remove signer from contract", async () => {
