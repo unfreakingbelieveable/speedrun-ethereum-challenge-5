@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "hardhat/console.sol";
-
 error Multisig__VotingNotEnded();
 error Multisig__ProposalExpired();
 error Multisig__UserIsNotSigner();
@@ -73,7 +71,6 @@ contract Multisig {
     // Main Multisig Operations
     // ---------------------------------------------------------------
     function changeTimeout(uint256 _newTimeout) public OnlyContract {
-        console.log("Chainging timeout to: ", _newTimeout);
         s_expirationTimeout = _newTimeout;
         emit TimeoutChanged(_newTimeout);
     }
@@ -89,14 +86,9 @@ contract Multisig {
     }
 
     function removeSigner(address _signer) public OnlyContract {
-        console.log("Removing signer ", _signer);
-        console.log("Signer status", s_isSigner[_signer]);
-
         if (!s_isSigner[_signer]) {
             revert Multisig__UserIsNotSigner();
         }
-
-        console.log("Did we survive the check?");
 
         uint256 removeIndex = findIndexOfSigner(_signer);
         _removeFromSignersArray(removeIndex);
@@ -186,12 +178,6 @@ contract Multisig {
         OnlySigners
         returns (bytes memory)
     {
-        // bytes memory _data = _encodeData(_proposal.func, _proposal.data);
-
-        console.log("Target is ", _proposal.target);
-        console.log("Data is ", string(_proposal.data));
-        // console.log("Encoded data is ", string(_data));
-
         (bool success, bytes memory result) = _proposal.target.call{
             value: _proposal.value
         }(_proposal.data);

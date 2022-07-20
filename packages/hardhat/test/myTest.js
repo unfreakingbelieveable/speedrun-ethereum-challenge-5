@@ -47,8 +47,6 @@ describe("My Dapp", function () {
         data = messageContract.interface.encodeFunctionData("changeMessage", [
           rawData,
         ]);
-
-        console.log(`Test_Call address ${target}`);
       });
     });
   });
@@ -64,7 +62,6 @@ describe("My Dapp", function () {
       myContract = await Multisig.deploy(members, currentTimeout, minVotes);
 
       signerContract = myContract.connect(member);
-      console.log(`Multisig Adddress is ${signerContract.address}`);
     });
 
     describe("Constructor()", () => {
@@ -123,17 +120,12 @@ describe("My Dapp", function () {
           expect(proposal.description).to.equal(description);
           expect(proposal.executed).to.equal(false);
 
-          // TODO: Test expiration
-
           let votes = await signerContract.test_getVoteArrayInProposal(i);
           expect(votes.length).to.equal(0);
         }
       });
     });
 
-    /**
-     * TODO: Test voting after voting period has ended
-     */
     describe("voteOnProposal()", () => {
       it("Non-signer cannot vote", async () => {
         await signerContract.submitProposal(
