@@ -72,7 +72,7 @@ contract Multisig {
         emit TimeoutChanged(_newTimeout);
     }
 
-    function addSigner(address _signer) external OnlySigners {
+    function addSigner(address _signer) public OnlyContract {
         if (s_isSigner[_signer]) {
             revert Multisig__UserAlreadySigner();
         }
