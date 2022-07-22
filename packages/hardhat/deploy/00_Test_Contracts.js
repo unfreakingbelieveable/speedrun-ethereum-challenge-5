@@ -31,7 +31,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       from: deployer,
       log: true,
       waitConfirmations: 5,
-      args: [members, 30],
+      args: [members, 10, 1],
     });
 
     // Getting a previously deployed contract
