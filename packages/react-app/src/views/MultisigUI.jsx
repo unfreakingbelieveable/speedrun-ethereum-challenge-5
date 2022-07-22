@@ -16,7 +16,7 @@ export default function MultisigUI({
   readContracts,
   writeContracts,
 }) {
-  const [newPurpose, setNewPurpose] = useState("loading...");
+  const [newSigner, addNewSigner] = useState("loading...");
 
   return (
     <div>
@@ -24,13 +24,13 @@ export default function MultisigUI({
         ⚙️ Here is an example UI that displays and sets the purpose in your smart contract:
       */}
       <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, margin: "auto", marginTop: 64 }}>
-        <h2>Example UI:</h2>
-        <h4>purpose: {purpose}</h4>
+        <h2>Multisig UI:</h2>
+        <h4>signers: {purpose}</h4>
         <Divider />
         <div style={{ margin: 8 }}>
           <Input
             onChange={e => {
-              setNewPurpose(e.target.value);
+              addNewSigner(e.target.value);
             }}
           />
           <Button
@@ -38,7 +38,8 @@ export default function MultisigUI({
             onClick={async () => {
               /* look how you call setPurpose on your contract: */
               /* notice how you pass a call back for tx updates too */
-              const result = tx(writeContracts.YourContract.setPurpose(newPurpose), update => {
+              newSigner = writeContracts.YourContract.interface.encodeFunctionData("submitProposal", newSigner);
+              const result = tx(writeContracts.YourContract.submitProposal(newSigner), update => {
                 console.log("📡 Transaction Update:", update);
                 if (update && (update.status === "confirmed" || update.status === 1)) {
                   console.log(" 🍾 Transaction " + update.hash + " finished!");
@@ -57,7 +58,7 @@ export default function MultisigUI({
               console.log(await result);
             }}
           >
-            Set Purpose!
+            Add New Signer!
           </Button>
         </div>
         <Divider />

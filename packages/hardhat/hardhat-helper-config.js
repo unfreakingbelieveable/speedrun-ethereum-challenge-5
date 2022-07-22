@@ -1,6 +1,7 @@
 const members = [
   "0x97A7f08423C44436e856C25cd42bbf3000C73db1",
   "0x2F9378D573b20199105bCaF6D103Ac88d5442aA5",
+  "0x301Be452F4Ec8057fa181A3Fa7935eC8FAe647e2",
 ];
 
 module.exports = { members };
