@@ -12,4 +12,12 @@ contract Test_Call {
         console.log("Data: ", string(msg.data));
         message = _newMessage;
     }
+
+    function changeMessageWithValue(string memory _newMessage) external payable {
+        require(msg.value > 0, "No ether was sent!");
+        console.log("Sender: ", msg.sender);
+        console.log("Value: ", msg.value);
+        console.log("Data: ", string(msg.data));
+        message = _newMessage;
+    }
 }

@@ -372,6 +372,7 @@ describe("My Dapp", function () {
       });
     });
 
+    // TODO: Test with sending value
     describe("test_executeProposal()", () => {
       it("Executes a proposal, bypassing multisig", async () => {
         await signerContract.test_executeProposal(
@@ -389,6 +390,7 @@ describe("My Dapp", function () {
       });
     });
 
+    // TODO: Test with sending value
     describe("executeProposal()", () => {
       it("Does not allow non-signers to execute", async () => {
         expect(myContract.executeProposal(0)).to.be.revertedWith(
