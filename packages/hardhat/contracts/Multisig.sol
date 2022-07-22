@@ -8,7 +8,6 @@ error Multisig__OnlyContract();
 error Multisig__AlreadyExecuted();
 error Multisig__UserAlreadySigner();
 error Multisig__ProposalDidNotPass();
-error Multisig__FunctionNotImplemented();
 error Multisig__ProposalExecutionFailed();
 
 contract Multisig {
@@ -192,13 +191,9 @@ contract Multisig {
     // ---------------------------------------------------------------
     // to support receiving ETH by default
     // ---------------------------------------------------------------
-    receive() external payable {
-        revert Multisig__FunctionNotImplemented();
-    }
+    receive() external payable {}
 
-    fallback() external payable {
-        revert Multisig__FunctionNotImplemented();
-    }
+    fallback() external payable {}
 
     // ---------------------------------------------------------------
     // Array operations Helper methods

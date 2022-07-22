@@ -20,9 +20,12 @@ describe("My Dapp", function () {
 
   let target;
   let value = 0;
+  let someValue = ethers.utils.parseEther("0.0001");
   let funcName = "changeMessage(string)";
+  let funcNameWithValue = "changeMessageWithValue(string)";
   let rawData = "Hi there!";
   let data;
+  let valueData;
   let description = "From submitProposal() tests";
 
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
@@ -41,6 +44,10 @@ describe("My Dapp", function () {
         data = messageContract.interface.encodeFunctionData("changeMessage", [
           rawData,
         ]);
+
+        valueData = messageContract.interface.encodeFunctionData("changeMessageWithValue", [
+          rawData,
+        ]);
       });
     });
   });
@@ -56,6 +63,12 @@ describe("My Dapp", function () {
       myContract = await Multisig.deploy(members, currentTimeout, minVotes);
 
       signerContract = myContract.connect(member);
+
+      // Fund the multisig with some ether
+      await member.sendTransaction({
+        to: signerContract.address,
+        value: ethers.utils.parseEther("0.5")
+      });
     });
 
     describe("Constructor()", () => {
@@ -372,7 +385,6 @@ describe("My Dapp", function () {
       });
     });
 
-    // TODO: Test with sending value
     describe("test_executeProposal()", () => {
       it("Executes a proposal, bypassing multisig", async () => {
         await signerContract.test_executeProposal(
@@ -388,9 +400,23 @@ describe("My Dapp", function () {
         // Reset the message for later tests
         await messageContract.changeMessage("Hello World!");
       });
+
+      it("Executes a proposal with value, bypassing multisig", async () => {
+        await signerContract.test_executeProposal(
+          target,
+          someValue,
+          funcNameWithValue,
+          valueData,
+          description
+        );
+
+        expect(await messageContract.message()).to.equal(rawData);
+
+        // Reset the message for later tests
+        await messageContract.changeMessage("Hello World!");
+      });
     });
 
-    // TODO: Test with sending value
     describe("executeProposal()", () => {
       it("Does not allow non-signers to execute", async () => {
         expect(myContract.executeProposal(0)).to.be.revertedWith(
@@ -455,6 +481,34 @@ describe("My Dapp", function () {
           .withArgs(proposalIndex);
 
         expect(await messageContract.message()).to.equal(rawData);
+
+        // Reset the message for later tests
+        await messageContract.changeMessage("Hello World!");
+      });
+
+      it("Executes a proposal with value via multisig", async () => {
+        await signerContract.submitProposal(
+          target,
+          someValue,
+          funcNameWithValue,
+          valueData,
+          description
+        );
+
+        let proposalIndex =
+          (await signerContract.test_getProposals()).length - 1;
+
+        await signerContract.voteOnProposal(proposalIndex);
+        await new Promise((r) => setTimeout(r, currentTimeout * 1000));
+
+        expect(await signerContract.executeProposal(proposalIndex))
+          .to.emit(signerContract, "ProposalExecuted")
+          .withArgs(proposalIndex);
+
+        expect(await messageContract.message()).to.equal(rawData);
+
+        // Reset the message for later tests
+        await messageContract.changeMessage("Hello World!");
       });
     });
 

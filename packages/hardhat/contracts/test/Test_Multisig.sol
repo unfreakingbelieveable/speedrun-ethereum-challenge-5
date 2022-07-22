@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import "../Multisig.sol";
+import "hardhat/console.sol";
 
 contract Test_Multisig is Multisig {
     constructor(
@@ -80,6 +81,7 @@ contract Test_Multisig is Multisig {
         bytes memory _data,
         string memory _description
     ) public returns (bytes memory) {
+        console.log("Contract balance: ", address(this).balance);
         Proposal memory _newProposal = Proposal({
             from: msg.sender,
             target: _target,
