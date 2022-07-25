@@ -17,7 +17,7 @@ export default function MultisigUI({
   readContracts,
   writeContracts,
 }) {
-  const [newSigners, setSigners] = useState("loading...");
+  const [newSigner, addNewSigner] = useState("loading...");
 
   return (
     <div>
@@ -26,7 +26,7 @@ export default function MultisigUI({
       */}
       <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, margin: "auto", marginTop: 64 }}>
         <h2>Multisig UI:</h2>
-        <h4>signers:</h4>
+        <h4>Current Members:</h4>
         <List
         bordered
         dataSource={signers}
@@ -38,76 +38,36 @@ export default function MultisigUI({
           );
         }}
       />
+      < Divider />
+      <div style={{ margin: 8}}>
+          <Input
+            onChange={e => {
+              addNewSigner(e.target.value);
+            }}
+          />
+      </div>
+      <div style={{ margin: 8}}>
+          <Button 
+            onClick={() => {
+              tx(writeContracts.Test_Multisig.submitProposal(
+                writeContracts.Test_Multisig.address,
+                0,
+                "addSigner(address)",
+                writeContracts.Test_Multisig.interface.encodeFunctionData("addSigner", [newSigner]),
+                `Add ${newSigner} to multisig via scaffold eth web interface`
+              ));
+              addNewSigner("");
+            }}
+          >
+            Add new member to multisig!
+          </Button>
+        </div>
         <Divider />
-        <div style={{ margin: 8 }}>
-        </div>
+        Open Proposals:
         <Divider />
-        Your Contract Address:
-        <Address
-          address={readContracts && readContracts.YourContract ? readContracts.YourContract.address : null}
-          ensProvider={mainnetProvider}
-          fontSize={16}
-        />
+        Passed Proposals:
         <Divider />
-        <div style={{ margin: 8 }}>
-          <Button
-            onClick={() => {
-              /* look how you call setPurpose on your contract: */
-              tx(writeContracts.YourContract.setPurpose("🍻 Cheers"));
-            }}
-          >
-            Set Purpose to &quot;🍻 Cheers&quot;
-          </Button>
-        </div>
-        <div style={{ margin: 8 }}>
-          <Button
-            onClick={() => {
-              /*
-              you can also just craft a transaction and send it to the tx() transactor
-              here we are sending value straight to the contract's address:
-            */
-              tx({
-                to: writeContracts.YourContract.address,
-                value: utils.parseEther("0.001"),
-              });
-              /* this should throw an error about "no fallback nor receive function" until you add it */
-            }}
-          >
-            Send Value
-          </Button>
-        </div>
-        <div style={{ margin: 8 }}>
-          <Button
-            onClick={() => {
-              /* look how we call setPurpose AND send some value along */
-              tx(
-                writeContracts.YourContract.setPurpose("💵 Paying for this one!", {
-                  value: utils.parseEther("0.001"),
-                }),
-              );
-              /* this will fail until you make the setPurpose function payable */
-            }}
-          >
-            Set Purpose With Value
-          </Button>
-        </div>
-        <div style={{ margin: 8 }}>
-          <Button
-            onClick={() => {
-              /* you can also just craft a transaction and send it to the tx() transactor */
-              tx({
-                to: writeContracts.YourContract.address,
-                value: utils.parseEther("0.001"),
-                data: writeContracts.YourContract.interface.encodeFunctionData("setPurpose(string)", [
-                  "🤓 Whoa so 1337!",
-                ]),
-              });
-              /* this should throw an error about "no fallback nor receive function" until you add it */
-            }}
-          >
-            Another Example
-          </Button>
-        </div>
+        Failed Proposals:
       </div>
 
       {/*
