@@ -168,7 +168,8 @@ function App(props) {
 
   // keep track of a variable from the contract in the local React state:
   const purpose = useContractReader(readContracts, "YourContract", "purpose");
-
+  const signers = useContractReader(readContracts, "Test_Multisig", "test_getSigners");
+  
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
   console.log("🏷 Resolved austingriffith.eth as:",addressFromENS)
@@ -299,8 +300,8 @@ function App(props) {
         <Menu.Item key="/exampleui">
           <Link to="/exampleui">ExampleUI</Link>
         </Menu.Item>
-        <Menu.Item key="/multisigui">
-          <Link to="/multisigui">MultisigUI</Link>
+        <Menu.Item key="/Multisigui">
+          <Link to="/Multisigui">MultisigUI</Link>
         </Menu.Item>
         <Menu.Item key="/mainnetdai">
           <Link to="/mainnetdai">Mainnet DAI</Link>
@@ -331,16 +332,7 @@ function App(props) {
             contractConfig={contractConfig}
           />
           <Contract
-            name="Test_Call"
-            price={price}
-            signer={userSigner}
-            provider={localProvider}
-            address={address}
-            blockExplorer={blockExplorer}
-            contractConfig={contractConfig}
-          />
-          <Contract
-            name="Multisig"
+            name="YourContract"
             price={price}
             signer={userSigner}
             provider={localProvider}
@@ -371,7 +363,7 @@ function App(props) {
             purpose={purpose}
           />
         </Route>
-        <Route path="/multisigui">
+        <Route path="/MultisigUI">
           <MultisigUI
             address={address}
             userSigner={userSigner}
@@ -382,7 +374,7 @@ function App(props) {
             tx={tx}
             writeContracts={writeContracts}
             readContracts={readContracts}
-            purpose={purpose}
+            signers={signers}
           />
         </Route>
         <Route path="/mainnetdai">
