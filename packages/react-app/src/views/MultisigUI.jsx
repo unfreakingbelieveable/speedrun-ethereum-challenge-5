@@ -4,7 +4,7 @@ import { utils } from "ethers";
 import { SyncOutlined } from "@ant-design/icons";
 import { List } from "antd";
 
-import { Address, Balance, Events } from "../components";
+import { Address, AddressInput, Balance, Events } from "../components";
 
 export default function MultisigUI({
   signers,
@@ -40,9 +40,9 @@ export default function MultisigUI({
       />
       < Divider />
       <div style={{ margin: 8}}>
-          <Input
+          <AddressInput
             onChange={e => {
-              addNewSigner(e.target.value);
+              addNewSigner(e);
             }}
           />
       </div>
