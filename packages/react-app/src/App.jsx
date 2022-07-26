@@ -170,6 +170,7 @@ function App(props) {
   const purpose = useContractReader(readContracts, "YourContract", "purpose");
   const signers = useContractReader(readContracts, "Test_Multisig", "test_getSigners");
   const proposals = useContractReader(readContracts, "Test_Multisig", "test_getProposals")
+  const minVotes = useContractReader(readContracts, "Test_Multisig", "s_minVotes")
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
   console.log("🏷 Resolved austingriffith.eth as:",addressFromENS)
@@ -376,6 +377,7 @@ function App(props) {
             readContracts={readContracts}
             signers={signers}
             proposals={proposals}
+            minVotes={minVotes}
           />
         </Route>
         <Route path="/mainnetdai">

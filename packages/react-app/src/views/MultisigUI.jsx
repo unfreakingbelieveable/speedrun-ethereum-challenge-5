@@ -18,10 +18,12 @@ export default function MultisigUI({
   tx,
   readContracts,
   writeContracts,
-  proposals
+  proposals,
+  minVotes
 }) {
   const [newSigner, addNewSigner] = useState("loading...");
-  proposals != undefined ? console.log(proposals[0]) : console.log("")
+  // proposals != undefined ? console.log(proposals[0].voteYes.length) : console.log("")
+  // minVotes != undefined ? console.log(Number(proposals[0].voteYes.length) < Number(minVotes.toString())) : console.log()
   return (
     <div>
       {/*
@@ -68,26 +70,61 @@ export default function MultisigUI({
           </Button>
         </div>
         <Divider />
-        All Proposals:
+        Open Proposals:
         <List
           bordered
           dataSource={proposals}
-          renderItem={item => {
-            return (
-              <List.Item key={item}>
-                {item.description}
-              </List.Item>
-            );
+          renderItem={(item, index) => {
+            let retdata;
+            item.expiration.toString() > Math.floor(Date.now()/1000) ?
+            retdata = (
+              <div>
+                <List.Item key={item}>
+                  {item.description}
+                </List.Item>
+                <Button
+                  onClick={() => {
+                    tx(writeContracts.Test_Multisig.voteOnProposal(index));
+                  }}
+                >
+                  Vote Yes
+                </Button>
+              </div>
+            ) : retdata = ("");
+            return retdata;
           }}
         />
         <Divider />
-        Open Proposals:
+        Passed Proposals:
+        <List
+          bordered
+          dataSource={proposals}
+          renderItem={(item, index) => {
+            let retdata;
+            ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && (Number(item.voteYes.length.toString()) >= Number(minVotes.toString()))) ?
+            retdata = (
+              <div>
+                <List.Item key={item}>
+                  {item.description}
+                </List.Item>
+                <Button
+                  onClick={() => {
+                    tx(writeContracts.Test_Multisig.executeProposal(index));
+                  }}
+                >Execute</Button>
+              </div>
+            ) : retdata = ("");
+            return retdata;
+          }}
+        />
+        <Divider />
+        Failed Proposals:
         <List
           bordered
           dataSource={proposals}
           renderItem={item => {
             let retdata;
-            item.expiration.toString() > Math.floor(Date.now()/1000) ?
+            ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && (Number(item.voteYes.length.toString()) < Number(minVotes.toString()))) ?
             retdata = (
               <List.Item key={item}>
                 {item.description}
@@ -96,10 +133,6 @@ export default function MultisigUI({
             return retdata;
           }}
         />
-        <Divider />
-        Passed Proposals:
-        <Divider />
-        Failed Proposals:
       </div>
 
       {/*
