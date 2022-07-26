@@ -169,7 +169,7 @@ function App(props) {
   // keep track of a variable from the contract in the local React state:
   const purpose = useContractReader(readContracts, "YourContract", "purpose");
   const signers = useContractReader(readContracts, "Test_Multisig", "test_getSigners");
-  
+  const proposals = useContractReader(readContracts, "Test_Multisig", "test_getProposals")
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
   console.log("🏷 Resolved austingriffith.eth as:",addressFromENS)
@@ -375,6 +375,7 @@ function App(props) {
             writeContracts={writeContracts}
             readContracts={readContracts}
             signers={signers}
+            proposals={proposals}
           />
         </Route>
         <Route path="/mainnetdai">

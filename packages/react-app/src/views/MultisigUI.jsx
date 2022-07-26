@@ -6,6 +6,8 @@ import { List } from "antd";
 
 import { Address, AddressInput, Balance, Events } from "../components";
 
+// const { ethers } = require("ethers");
+
 export default function MultisigUI({
   signers,
   address,
@@ -16,10 +18,10 @@ export default function MultisigUI({
   tx,
   readContracts,
   writeContracts,
+  proposals
 }) {
   const [newSigner, addNewSigner] = useState("loading...");
-  // let proposals = writeContracts.Test_Multisig.test_getProposals(); 
-
+  proposals != undefined ? console.log(proposals[0]) : console.log("")
   return (
     <div>
       {/*
@@ -66,7 +68,34 @@ export default function MultisigUI({
           </Button>
         </div>
         <Divider />
+        All Proposals:
+        <List
+          bordered
+          dataSource={proposals}
+          renderItem={item => {
+            return (
+              <List.Item key={item}>
+                {item.description}
+              </List.Item>
+            );
+          }}
+        />
+        <Divider />
         Open Proposals:
+        <List
+          bordered
+          dataSource={proposals}
+          renderItem={item => {
+            let retdata;
+            item.expiration.toString() < Math.floor(Date.now()/1000) ?
+            retdata = (
+              <List.Item key={item}>
+                {item.description}
+              </List.Item>
+            ) : retdata = ("");
+            return retdata;
+          }}
+        />
         <Divider />
         Passed Proposals:
         <Divider />
