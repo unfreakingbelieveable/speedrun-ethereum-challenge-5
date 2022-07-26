@@ -141,8 +141,8 @@ export default function MultisigUI({
       */}
       <Events
         contracts={readContracts}
-        contractName="YourContract"
-        eventName="SetPurpose"
+        contractName="Test_Multisig"
+        eventName="SignerAdded"
         localProvider={localProvider}
         mainnetProvider={mainnetProvider}
         startBlock={1}
