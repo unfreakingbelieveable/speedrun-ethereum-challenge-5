@@ -87,7 +87,7 @@ export default function MultisigUI({
           dataSource={proposals}
           renderItem={item => {
             let retdata;
-            item.expiration.toString() < Math.floor(Date.now()/1000) ?
+            item.expiration.toString() > Math.floor(Date.now()/1000) ?
             retdata = (
               <List.Item key={item}>
                 {item.description}
