@@ -4,7 +4,7 @@ import { utils } from "ethers";
 import { SyncOutlined } from "@ant-design/icons";
 import { List } from "antd";
 
-import { Address, AddressInput, Balance, Events } from "../components";
+import { Address, AddressInput, Balance, EtherInput, Events } from "../components";
 
 // const { ethers } = require("ethers");
 
@@ -21,9 +21,14 @@ export default function MultisigUI({
   proposals,
   minVotes
 }) {
-  const [newSigner, addNewSigner] = useState("loading...");
-  // proposals != undefined ? console.log(proposals[0].voteYes.length) : console.log("")
-  // minVotes != undefined ? console.log(Number(proposals[0].voteYes.length) < Number(minVotes.toString())) : console.log()
+
+  const [newSigner, addNewSigner] = useState();
+  const [txAddr, changeTxAddr] = useState();
+  const [txVal, changeTxVal] = useState();
+  const [funcName, changeFunc] = useState();
+  const [txParams, changeTxParams] = useState();
+  const [txDesc, changeTxDesc] = useState();
+  
   return (
     <div>
       {/*
@@ -48,51 +53,82 @@ export default function MultisigUI({
       Add Member to Multisig:
       <div style={{ margin: 8}}>
           <AddressInput
+            autoFocus
             placeholder="Please Enter an Address"
-            onChange={e => {
-              addNewSigner(e);
-            }}
+            onChange={(e) => {
+                addNewSigner(e)
+              }
+            }
+            ensProvider={mainnetProvider}
+            value={newSigner}
           />
       </div>
       <div style={{ margin: 8}}>
         <Button 
           onClick={() => {
-            tx(writeContracts.Test_Multisig.submitProposal(
-              writeContracts.Test_Multisig.address,
-              0,
-              "addSigner(address)",
-              writeContracts.Test_Multisig.interface.encodeFunctionData("addSigner", [newSigner]),
-              `Add ${newSigner} to multisig via scaffold eth web interface`
-            ));
-            addNewSigner("");
-          }}
+              if ((newSigner != undefined) && (newSigner != "")) {
+                tx(writeContracts.Test_Multisig.submitProposal(
+                  writeContracts.Test_Multisig.address,
+                  0,
+                  "addSigner(address)",
+                  writeContracts.Test_Multisig.interface.encodeFunctionData("addSigner", [newSigner]),
+                  `Add ${newSigner} to multisig via scaffold eth web interface`
+                ))
+                addNewSigner("")
+              }
+            }
+          }
         >
           Add New Member!
         </Button>
       </div>
       <Divider />
       Create Custom TX:
-      <Input 
-        prefix="#"
-        value=""
-        placeholder={"Contract Address"}
+      <AddressInput 
+        autoFocus
+        placeholder="Contract Address -> 0x0000...0000"
+        onChange={e => changeTxAddr(e)}
+        ensProvider={mainnetProvider}
+        value={txAddr}
       />
-      <Input 
-        prefix="#"
-        value=""
-        placeholder={"Eth Value to Send"}
+      <EtherInput
+        placeholder="Eth Value to Send"
+        value={txVal}
+        price={price}
+        onChange={e => changeTxVal(e)}
       />
-      <Input 
-        prefix="#"
-        value=""
-        placeholder={"Function with types -> setMessage(string,uint256)"}
+      <Input
+        placeholder={"Function Name with Types -> setMessage(string,uint256)"}
+        onChange={e => { e.preventDefault(); changeFunc(e.target.value)}}
       />
-      <Input 
-        prefix="#"
-        value=""
-        placeholder={"List of param values -> Hey,420"}
+      <Input
+        placeholder={"List of Param Values -> Hey,420"}
+        onChange={e => { e.preventDefault(); changeTxParams(e.target.value)}}
       />
-      <Button >Submit Custom TX</Button>
+      <Input
+        placeholder={"Description for TX"}
+        onChange={e => {e.preventDefault(); changeTxDesc(e.target.value)}}
+      />
+      <Button 
+        onClick={() => {
+          if(txAddr && funcName && txParams && txDesc) {
+            let val;
+            txVal ? val = txVal : val = "0";
+            let i = new utils.Interface([`function ${funcName}`]);
+            let txData = i.encodeFunctionData(funcName, txParams.split(","))
+            tx(writeContracts.Test_Multisig.submitProposal(
+                txAddr,
+                utils.parseEther(txVal),
+                funcName,
+                txData,
+                txDesc
+              )
+            )
+          } else { console.log(txVal) }
+        }}
+      >
+        Submit Custom TX
+      </Button>
       <Divider />
       Open Proposals:
       <List
