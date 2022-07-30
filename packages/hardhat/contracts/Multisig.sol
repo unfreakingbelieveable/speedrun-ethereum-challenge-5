@@ -84,6 +84,7 @@ contract Multisig {
         emit SignerAdded(_signer);
     }
 
+    // TODO: Ensure minvotes not set more than num members
     function removeSigner(address _signer) public OnlyContract {
         if (!s_isSigner[_signer]) {
             revert Multisig__UserIsNotSigner();
@@ -95,6 +96,7 @@ contract Multisig {
         emit SignerRemoved(_signer);
     }
 
+    // TODO: Ensure minvotes not set more than num members
     function setMinVotes(uint256 _minVotes) public OnlyContract {
         s_minVotes = _minVotes;
         emit MinimumVotesChanged(_minVotes);
