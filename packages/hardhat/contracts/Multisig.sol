@@ -8,7 +8,9 @@ error Multisig__OnlyContract();
 error Multisig__AlreadyExecuted();
 error Multisig__UserAlreadySigner();
 error Multisig__ProposalDidNotPass();
+error Multisig__CannotSetVotesToZero();
 error Multisig__ProposalExecutionFailed();
+error Multisig__NumVotesLessThanMembers();
 
 contract Multisig {
     event TimeoutChanged(uint256 newTimeout);
@@ -29,6 +31,7 @@ contract Multisig {
         string description;
         bytes data;
         bytes result;
+        bool passed;
         bool executed;
     }
 
@@ -84,7 +87,6 @@ contract Multisig {
         emit SignerAdded(_signer);
     }
 
-    // TODO: Ensure minvotes not set more than num members
     function removeSigner(address _signer) public OnlyContract {
         if (!s_isSigner[_signer]) {
             revert Multisig__UserIsNotSigner();
@@ -93,11 +95,17 @@ contract Multisig {
         uint256 removeIndex = findIndexOfSigner(_signer);
         _removeFromSignersArray(removeIndex);
         s_isSigner[_signer] = false;
+
+        // Ensure removing a signer doesnt brick contract
+        if(s_signers.length < s_minVotes) { s_minVotes -= 1; }
+
         emit SignerRemoved(_signer);
     }
 
-    // TODO: Ensure minvotes not set more than num members
     function setMinVotes(uint256 _minVotes) public OnlyContract {
+        if (_minVotes == 0) { revert Multisig__CannotSetVotesToZero(); }
+        if (_minVotes > s_signers.length) { revert Multisig__NumVotesLessThanMembers(); }
+        
         s_minVotes = _minVotes;
         emit MinimumVotesChanged(_minVotes);
     }
@@ -131,6 +139,7 @@ contract Multisig {
             description: _description,
             voteYes: new address[](0),
             expiration: block.timestamp + s_expirationTimeout,
+            passed: false,
             executed: false,
             result: ""
         });
@@ -146,6 +155,11 @@ contract Multisig {
         }
 
         _proposal.voteYes.push(msg.sender);
+
+        if(_proposal.voteYes.length >= s_minVotes) {
+            _proposal.passed = true;
+        }
+
         emit SignerVoted(msg.sender, _index);
     }
 

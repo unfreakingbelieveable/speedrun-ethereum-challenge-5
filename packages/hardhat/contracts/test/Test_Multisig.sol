@@ -25,7 +25,13 @@ contract Test_Multisig is Multisig {
     }
 
     function test_changeTimeout(uint256 _newTimeout) public {
-        changeTimeout(_newTimeout);
+        //changeTimeout(_newTimeout);
+        bytes memory _data = abi.encodeWithSignature(
+            "changeTimeout(uint256)",
+            _newTimeout
+        );
+        (bool success, ) = address(this).call(_data);
+        require(success, "Call on changeTimeout() failed");
     }
 
     function test_findIndexOfSigner(address _signer)
@@ -91,6 +97,7 @@ contract Test_Multisig is Multisig {
             description: _description,
             voteYes: new address[](0),
             expiration: block.timestamp + s_expirationTimeout,
+            passed: false,
             executed: false,
             result: ""
         });

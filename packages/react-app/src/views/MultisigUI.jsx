@@ -30,6 +30,7 @@ export default function MultisigUI({
   const [txParams, changeTxParams] = useState();
   const [txDesc, changeTxDesc] = useState();
   const [newMinVotes, setMinVotes] = useState();
+  const [newTimeout, setNewTimeout] = useState();
   
   return (
     <div>
@@ -148,6 +149,37 @@ export default function MultisigUI({
           Change Min Number of Votes!
         </Button>
       </div>
+      < Divider />
+      Set Timeout:
+      <div style={{ margin: 8}}>
+          <Input
+            placeholder="Please Enter New Timeout (in seconds)"
+            onChange={(e) => {
+                e.preventDefault();
+                setNewTimeout(e.target.value);
+              }
+            }
+          />
+      </div>
+      <div style={{ margin: 8}}>
+        <Button 
+          onClick={() => {
+              if ((newTimeout != undefined) && (newTimeout != "")) {
+                tx(writeContracts.Test_Multisig.submitProposal(
+                  writeContracts.Test_Multisig.address,
+                  0,
+                  "changeTimeout(uint256)",
+                  writeContracts.Test_Multisig.interface.encodeFunctionData("changeTimeout", [newTimeout]),
+                  `Change timeout to ${newTimeout} via scaffold eth web interface`
+                ))
+                setNewTimeout("")
+              }
+            }
+          }
+        >
+          Change Timeout!
+        </Button>
+      </div>
       <Divider />
       Create Custom TX:
       <AddressInput 
@@ -204,18 +236,19 @@ export default function MultisigUI({
           let retdata;
           item.expiration.toString() > Math.floor(Date.now()/1000) ?
           retdata = (
-            <div>
               <List.Item key={item}>
                 {item.description}
+                <div>
+                  <Button
+                  onClick={() => {
+                      tx(writeContracts.Test_Multisig.voteOnProposal(index));
+                    }}
+                  >
+                    Vote Yes
+                  </Button>
+                </div>
               </List.Item>
-              <Button
-                onClick={() => {
-                  tx(writeContracts.Test_Multisig.voteOnProposal(index));
-                }}
-              >
-                Vote Yes
-              </Button>
-            </div>
+              
           ) : retdata = ("");
           return retdata;
         }}
@@ -227,26 +260,26 @@ export default function MultisigUI({
         dataSource={proposals}
         renderItem={(item, index) => {
           let retdata;
-          ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && (Number(item.voteYes.length.toString()) >= Number(minVotes.toString()))) ?
+          ((minVotes != undefined) && item.passed) ?
             item.executed ? 
               retdata = (
-                <div>
                   <List.Item key={item}>
                     {item.description}
                   </List.Item>
-                </div>
               ) : 
               retdata = (
-                <div>
-                  <List.Item key={item}>
-                    {item.description}
-                  </List.Item>
-                  <Button
+                <List.Item key={item}>
+                  {item.description}
+                  <div>
+                    <Button
                     onClick={() => {
-                      tx(writeContracts.Test_Multisig.executeProposal(index));
-                    }}
-                  >Execute</Button>
-                </div>
+                        tx(writeContracts.Test_Multisig.executeProposal(index));
+                      }}
+                    >
+                      Execute
+                    </Button>
+                  </div>
+                </List.Item>
               ) 
           :
           retdata = ("");
@@ -260,7 +293,7 @@ export default function MultisigUI({
         dataSource={proposals}
         renderItem={item => {
           let retdata;
-          ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && (Number(item.voteYes.length.toString()) < Number(minVotes.toString()))) ?
+          ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && !item.passed) ?
           retdata = (
             <List.Item key={item}>
               {item.description}
