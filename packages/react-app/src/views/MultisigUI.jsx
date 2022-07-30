@@ -23,11 +23,13 @@ export default function MultisigUI({
 }) {
 
   const [newSigner, addNewSigner] = useState();
+  const [removeSigner, setRemoveSigner] = useState();
   const [txAddr, changeTxAddr] = useState();
   const [txVal, changeTxVal] = useState();
   const [funcName, changeFunc] = useState();
   const [txParams, changeTxParams] = useState();
   const [txDesc, changeTxDesc] = useState();
+  const [newMinVotes, setMinVotes] = useState();
   
   return (
     <div>
@@ -80,6 +82,70 @@ export default function MultisigUI({
           }
         >
           Add New Member!
+        </Button>
+      </div>
+      < Divider />
+      Remove Member from Multisig:
+      <div style={{ margin: 8}}>
+          <AddressInput
+            autoFocus
+            placeholder="Please Enter an Address"
+            onChange={(e) => {
+                setRemoveSigner(e)
+              }
+            }
+            ensProvider={mainnetProvider}
+            value={removeSigner}
+          />
+      </div>
+      <div style={{ margin: 8}}>
+        <Button 
+          onClick={() => {
+              if ((removeSigner != undefined) && (removeSigner != "")) {
+                tx(writeContracts.Test_Multisig.submitProposal(
+                  writeContracts.Test_Multisig.address,
+                  0,
+                  "removeSigner(address)",
+                  writeContracts.Test_Multisig.interface.encodeFunctionData("removeSigner", [removeSigner]),
+                  `Remove ${removeSigner} from multisig via scaffold eth web interface`
+                ))
+                setRemoveSigner("")
+              }
+            }
+          }
+        >
+          Remove Member!
+        </Button>
+      </div>
+      < Divider />
+      Set Minimum Number of Votes:
+      <div style={{ margin: 8}}>
+          <Input
+            placeholder="Please Enter New Number of Votes"
+            onChange={(e) => {
+                e.preventDefault();
+                setMinVotes(e.target.value);
+              }
+            }
+          />
+      </div>
+      <div style={{ margin: 8}}>
+        <Button 
+          onClick={() => {
+              if ((newMinVotes != undefined) && (newMinVotes != "")) {
+                tx(writeContracts.Test_Multisig.submitProposal(
+                  writeContracts.Test_Multisig.address,
+                  0,
+                  "setMinVotes(uint256)",
+                  writeContracts.Test_Multisig.interface.encodeFunctionData("setMinVotes", [newMinVotes]),
+                  `Change minimum votes to ${newMinVotes} via scaffold eth web interface`
+                ))
+                setMinVotes("")
+              }
+            }
+          }
+        >
+          Change Min Number of Votes!
         </Button>
       </div>
       <Divider />
