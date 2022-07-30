@@ -45,6 +45,7 @@ export default function MultisigUI({
         }}
       />
       < Divider />
+      Add Member to Multisig:
       <div style={{ margin: 8}}>
           <AddressInput
             placeholder="Please Enter an Address"
@@ -54,86 +55,119 @@ export default function MultisigUI({
           />
       </div>
       <div style={{ margin: 8}}>
-          <Button 
-            onClick={() => {
-              tx(writeContracts.Test_Multisig.submitProposal(
-                writeContracts.Test_Multisig.address,
-                0,
-                "addSigner(address)",
-                writeContracts.Test_Multisig.interface.encodeFunctionData("addSigner", [newSigner]),
-                `Add ${newSigner} to multisig via scaffold eth web interface`
-              ));
-              addNewSigner("");
-            }}
-          >
-            Add new member to multisig!
-          </Button>
-        </div>
-        <Divider />
-        Open Proposals:
-        <List
-          bordered
-          dataSource={proposals}
-          renderItem={(item, index) => {
-            let retdata;
-            item.expiration.toString() > Math.floor(Date.now()/1000) ?
-            retdata = (
-              <div>
-                <List.Item key={item}>
-                  {item.description}
-                </List.Item>
-                <Button
-                  onClick={() => {
-                    tx(writeContracts.Test_Multisig.voteOnProposal(index));
-                  }}
-                >
-                  Vote Yes
-                </Button>
-              </div>
-            ) : retdata = ("");
-            return retdata;
+        <Button 
+          onClick={() => {
+            tx(writeContracts.Test_Multisig.submitProposal(
+              writeContracts.Test_Multisig.address,
+              0,
+              "addSigner(address)",
+              writeContracts.Test_Multisig.interface.encodeFunctionData("addSigner", [newSigner]),
+              `Add ${newSigner} to multisig via scaffold eth web interface`
+            ));
+            addNewSigner("");
           }}
-        />
-        <Divider />
-        Passed Proposals:
-        <List
-          bordered
-          dataSource={proposals}
-          renderItem={(item, index) => {
-            let retdata;
-            ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && (Number(item.voteYes.length.toString()) >= Number(minVotes.toString()))) ?
-            retdata = (
-              <div>
-                <List.Item key={item}>
-                  {item.description}
-                </List.Item>
-                <Button
-                  onClick={() => {
-                    tx(writeContracts.Test_Multisig.executeProposal(index));
-                  }}
-                >Execute</Button>
-              </div>
-            ) : retdata = ("");
-            return retdata;
-          }}
-        />
-        <Divider />
-        Failed Proposals:
-        <List
-          bordered
-          dataSource={proposals}
-          renderItem={item => {
-            let retdata;
-            ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && (Number(item.voteYes.length.toString()) < Number(minVotes.toString()))) ?
-            retdata = (
+        >
+          Add New Member!
+        </Button>
+      </div>
+      <Divider />
+      Create Custom TX:
+      <Input 
+        prefix="#"
+        value=""
+        placeholder={"Contract Address"}
+      />
+      <Input 
+        prefix="#"
+        value=""
+        placeholder={"Eth Value to Send"}
+      />
+      <Input 
+        prefix="#"
+        value=""
+        placeholder={"Function with types -> setMessage(string,uint256)"}
+      />
+      <Input 
+        prefix="#"
+        value=""
+        placeholder={"List of param values -> Hey,420"}
+      />
+      <Button >Submit Custom TX</Button>
+      <Divider />
+      Open Proposals:
+      <List
+        bordered
+        dataSource={proposals}
+        renderItem={(item, index) => {
+          let retdata;
+          item.expiration.toString() > Math.floor(Date.now()/1000) ?
+          retdata = (
+            <div>
               <List.Item key={item}>
                 {item.description}
               </List.Item>
-            ) : retdata = ("");
-            return retdata;
-          }}
-        />
-      </div>
+              <Button
+                onClick={() => {
+                  tx(writeContracts.Test_Multisig.voteOnProposal(index));
+                }}
+              >
+                Vote Yes
+              </Button>
+            </div>
+          ) : retdata = ("");
+          return retdata;
+        }}
+      />
+      <Divider />
+      Passed Proposals:
+      <List
+        bordered
+        dataSource={proposals}
+        renderItem={(item, index) => {
+          let retdata;
+          ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && (Number(item.voteYes.length.toString()) >= Number(minVotes.toString()))) ?
+            item.executed ? 
+              retdata = (
+                <div>
+                  <List.Item key={item}>
+                    {item.description}
+                  </List.Item>
+                </div>
+              ) : 
+              retdata = (
+                <div>
+                  <List.Item key={item}>
+                    {item.description}
+                  </List.Item>
+                  <Button
+                    onClick={() => {
+                      tx(writeContracts.Test_Multisig.executeProposal(index));
+                    }}
+                  >Execute</Button>
+                </div>
+              ) 
+          :
+          retdata = ("");
+          return retdata;
+        }}
+      />
+      <Divider />
+      Failed Proposals:
+      <List
+        bordered
+        dataSource={proposals}
+        renderItem={item => {
+          let retdata;
+          ((minVotes != undefined) && (item.expiration.toString() < Math.floor(Date.now()/1000)) && (Number(item.voteYes.length.toString()) < Number(minVotes.toString()))) ?
+          retdata = (
+            <List.Item key={item}>
+              {item.description}
+            </List.Item>
+          ) : retdata = ("");
+          return retdata;
+        }}
+      />
+    </div>
 
       {/*
         📑 Maybe display a list of events?
