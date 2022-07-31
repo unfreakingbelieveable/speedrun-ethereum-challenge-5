@@ -70,11 +70,11 @@ export default function Home({
         <Button 
           onClick={() => {
               if ((newSigner != undefined) && (newSigner != "")) {
-                tx(writeContracts.Test_Multisig.submitProposal(
-                  writeContracts.Test_Multisig.address,
+                tx(writeContracts.Multisig.submitProposal(
+                  writeContracts.Multisig.address,
                   0,
                   "addSigner(address)",
-                  writeContracts.Test_Multisig.interface.encodeFunctionData("addSigner", [newSigner]),
+                  writeContracts.Multisig.interface.encodeFunctionData("addSigner", [newSigner]),
                   `Add ${newSigner} to multisig via scaffold eth web interface`
                 ))
                 addNewSigner("")
@@ -103,11 +103,11 @@ export default function Home({
         <Button 
           onClick={() => {
               if ((removeSigner != undefined) && (removeSigner != "")) {
-                tx(writeContracts.Test_Multisig.submitProposal(
-                  writeContracts.Test_Multisig.address,
+                tx(writeContracts.Multisig.submitProposal(
+                  writeContracts.Multisig.address,
                   0,
                   "removeSigner(address)",
-                  writeContracts.Test_Multisig.interface.encodeFunctionData("removeSigner", [removeSigner]),
+                  writeContracts.Multisig.interface.encodeFunctionData("removeSigner", [removeSigner]),
                   `Remove ${removeSigner} from multisig via scaffold eth web interface`
                 ))
                 setRemoveSigner("")
@@ -134,11 +134,11 @@ export default function Home({
         <Button 
           onClick={() => {
               if ((newMinVotes != undefined) && (newMinVotes != "")) {
-                tx(writeContracts.Test_Multisig.submitProposal(
-                  writeContracts.Test_Multisig.address,
+                tx(writeContracts.Multisig.submitProposal(
+                  writeContracts.Multisig.address,
                   0,
                   "setMinVotes(uint256)",
-                  writeContracts.Test_Multisig.interface.encodeFunctionData("setMinVotes", [newMinVotes]),
+                  writeContracts.Multisig.interface.encodeFunctionData("setMinVotes", [newMinVotes]),
                   `Change minimum votes to ${newMinVotes} via scaffold eth web interface`
                 ))
                 setMinVotes("")
@@ -165,11 +165,11 @@ export default function Home({
         <Button 
           onClick={() => {
               if ((newTimeout != undefined) && (newTimeout != "")) {
-                tx(writeContracts.Test_Multisig.submitProposal(
-                  writeContracts.Test_Multisig.address,
+                tx(writeContracts.Multisig.submitProposal(
+                  writeContracts.Multisig.address,
                   0,
                   "changeTimeout(uint256)",
-                  writeContracts.Test_Multisig.interface.encodeFunctionData("changeTimeout", [newTimeout]),
+                  writeContracts.Multisig.interface.encodeFunctionData("changeTimeout", [newTimeout]),
                   `Change timeout to ${newTimeout} via scaffold eth web interface`
                 ))
                 setNewTimeout("")
@@ -214,7 +214,7 @@ export default function Home({
             txVal ? val = txVal : val = "0";
             let i = new utils.Interface([`function ${funcName}`]);
             let txData = i.encodeFunctionData(funcName, txParams.split(","))
-            tx(writeContracts.Test_Multisig.submitProposal(
+            tx(writeContracts.Multisig.submitProposal(
                 txAddr,
                 utils.parseEther(txVal),
                 funcName,
@@ -241,7 +241,7 @@ export default function Home({
                 <div>
                   <Button
                   onClick={() => {
-                      tx(writeContracts.Test_Multisig.voteOnProposal(index));
+                      tx(writeContracts.Multisig.voteOnProposal(index));
                     }}
                   >
                     Vote Yes
@@ -273,7 +273,7 @@ export default function Home({
                   <div>
                     <Button
                     onClick={() => {
-                        tx(writeContracts.Test_Multisig.executeProposal(index));
+                        tx(writeContracts.Multisig.executeProposal(index));
                       }}
                     >
                       Execute
@@ -310,7 +310,7 @@ export default function Home({
       */}
       <Events
         contracts={readContracts}
-        contractName="Test_Multisig"
+        contractName="Multisig"
         eventName="SignerAdded"
         localProvider={localProvider}
         mainnetProvider={mainnetProvider}

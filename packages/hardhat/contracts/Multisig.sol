@@ -69,6 +69,16 @@ contract Multisig {
         _;
     }
 
+    // ---------
+    // Getters
+    // ----------
+    function getSigners() public view returns (address[] memory){
+        return s_signers;
+    }
+
+    function getProposals() public view returns (Proposal[] memory){
+        return s_proposals;
+    }
     // ---------------------------------------------------------------
     // Main Multisig Operations
     // ---------------------------------------------------------------

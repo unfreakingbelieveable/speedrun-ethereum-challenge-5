@@ -29,7 +29,7 @@ import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
-import { Home, MultisigUI, Hints, Subgraph } from "./views";
+import { Home, Hints, Subgraph } from "./views";
 import { useStaticJsonRPC } from "./hooks";
 
 const { ethers } = require("ethers");
@@ -167,9 +167,9 @@ function App(props) {
   ]);
 
   // keep track of a variable from the contract in the local React state:
-  const signers = useContractReader(readContracts, "Test_Multisig", "test_getSigners");
-  const proposals = useContractReader(readContracts, "Test_Multisig", "test_getProposals")
-  const minVotes = useContractReader(readContracts, "Test_Multisig", "s_minVotes")
+  const signers = useContractReader(readContracts, "Multisig", "getSigners");
+  const proposals = useContractReader(readContracts, "Multisig", "getProposals")
+  const minVotes = useContractReader(readContracts, "Multisig", "s_minVotes")
   /*
   const addressFromENS = useResolveName(mainnetProvider, "austingriffith.eth");
   console.log("🏷 Resolved austingriffith.eth as:",addressFromENS)
@@ -330,7 +330,7 @@ function App(props) {
                 and give you a form to interact with it locally
             */}
           <Contract
-            name="Test_Multisig"
+            name="Multisig"
             price={price}
             signer={userSigner}
             provider={localProvider}
