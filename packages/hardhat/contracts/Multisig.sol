@@ -46,6 +46,8 @@ contract Multisig {
         uint256 _timeout,
         uint256 _minVotes
     ) {
+        if(_signers.length < _minVotes) { revert Multisig__NumVotesLessThanMembers(); }
+
         s_expirationTimeout = _timeout;
         s_signers = _signers;
         s_minVotes = _minVotes;
@@ -176,9 +178,9 @@ contract Multisig {
     function executeProposal(uint256 _index) external OnlySigners {
         Proposal memory _proposal = s_proposals[_index];
 
-        if (_proposal.expiration > block.timestamp) {
-            revert Multisig__VotingNotEnded();
-        }
+        // if (_proposal.expiration > block.timestamp) {
+        //     revert Multisig__VotingNotEnded();
+        // }
 
         if (_proposal.voteYes.length < s_minVotes) {
             revert Multisig__ProposalDidNotPass();
