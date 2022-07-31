@@ -11,10 +11,24 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
 
+  let accountsInMultisig;
+  let voteTimeout;
+  let minVotes;
+
+  if(defaultNetwork.includes("localhost")) {
+    accountsInMultisig = [deployer];
+    voteTimeout = 30;
+    minVotes = 1;
+  } else {
+    accountsInMultisig = members
+    voteTimeout = 9999999 // 1 week
+    minVotes = 2
+  }
+
   await deploy("Multisig", {
       // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
       from: deployer,
-      args: [[deployer], 9999999, 1],
+      args: [accountsInMultisig, voteTimeout, minVotes],
       log: true,
       waitConfirmations: 5,
     });
