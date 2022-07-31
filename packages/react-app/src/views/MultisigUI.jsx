@@ -249,7 +249,7 @@ export default function MultisigUI({
                 </div>
               </List.Item>
               
-          ) : retdata = ("");
+          ) : retdata = "No Open Proposals"
           return retdata;
         }}
       />
@@ -298,7 +298,7 @@ export default function MultisigUI({
             <List.Item key={item}>
               {item.description}
             </List.Item>
-          ) : retdata = ("");
+          ) : retdata = ("No Failed Proposals");
           return retdata;
         }}
       />

@@ -29,7 +29,7 @@ import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
-import { Home, ExampleUI, MultisigUI, Hints, Subgraph } from "./views";
+import { Home, MultisigUI, Hints, Subgraph } from "./views";
 import { useStaticJsonRPC } from "./hooks";
 
 const { ethers } = require("ethers");
@@ -167,7 +167,6 @@ function App(props) {
   ]);
 
   // keep track of a variable from the contract in the local React state:
-  const purpose = useContractReader(readContracts, "YourContract", "purpose");
   const signers = useContractReader(readContracts, "Test_Multisig", "test_getSigners");
   const proposals = useContractReader(readContracts, "Test_Multisig", "test_getProposals")
   const minVotes = useContractReader(readContracts, "Test_Multisig", "s_minVotes")
@@ -298,12 +297,6 @@ function App(props) {
         <Menu.Item key="/hints">
           <Link to="/hints">Hints</Link>
         </Menu.Item>
-        <Menu.Item key="/exampleui">
-          <Link to="/exampleui">ExampleUI</Link>
-        </Menu.Item>
-        <Menu.Item key="/Multisigui">
-          <Link to="/Multisigui">MultisigUI</Link>
-        </Menu.Item>
         <Menu.Item key="/mainnetdai">
           <Link to="/mainnetdai">Mainnet DAI</Link>
         </Menu.Item>
@@ -315,7 +308,20 @@ function App(props) {
       <Switch>
         <Route exact path="/">
           {/* pass in any web3 props to this Home component. For example, yourLocalBalance */}
-          <Home yourLocalBalance={yourLocalBalance} readContracts={readContracts} />
+          <Home 
+            address={address}
+            userSigner={userSigner}
+            mainnetProvider={mainnetProvider}
+            localProvider={localProvider}
+            yourLocalBalance={yourLocalBalance}
+            price={price}
+            tx={tx}
+            writeContracts={writeContracts}
+            readContracts={readContracts}
+            signers={signers}
+            proposals={proposals}
+            minVotes={minVotes}
+          />
         </Route>
         <Route exact path="/debug">
           {/*
@@ -332,15 +338,6 @@ function App(props) {
             blockExplorer={blockExplorer}
             contractConfig={contractConfig}
           />
-          <Contract
-            name="YourContract"
-            price={price}
-            signer={userSigner}
-            provider={localProvider}
-            address={address}
-            blockExplorer={blockExplorer}
-            contractConfig={contractConfig}
-          />
         </Route>
         <Route path="/hints">
           <Hints
@@ -348,36 +345,6 @@ function App(props) {
             yourLocalBalance={yourLocalBalance}
             mainnetProvider={mainnetProvider}
             price={price}
-          />
-        </Route>
-        <Route path="/exampleui">
-          <ExampleUI
-            address={address}
-            userSigner={userSigner}
-            mainnetProvider={mainnetProvider}
-            localProvider={localProvider}
-            yourLocalBalance={yourLocalBalance}
-            price={price}
-            tx={tx}
-            writeContracts={writeContracts}
-            readContracts={readContracts}
-            purpose={purpose}
-          />
-        </Route>
-        <Route path="/MultisigUI">
-          <MultisigUI
-            address={address}
-            userSigner={userSigner}
-            mainnetProvider={mainnetProvider}
-            localProvider={localProvider}
-            yourLocalBalance={yourLocalBalance}
-            price={price}
-            tx={tx}
-            writeContracts={writeContracts}
-            readContracts={readContracts}
-            signers={signers}
-            proposals={proposals}
-            minVotes={minVotes}
           />
         </Route>
         <Route path="/mainnetdai">
@@ -391,16 +358,6 @@ function App(props) {
             contractConfig={contractConfig}
             chainId={1}
           />
-          {/*
-            <Contract
-              name="UNI"
-              customContract={mainnetContracts && mainnetContracts.contracts && mainnetContracts.contracts.UNI}
-              signer={userSigner}
-              provider={mainnetProvider}
-              address={address}
-              blockExplorer="https://etherscan.io/"
-            />
-            */}
         </Route>
         <Route path="/subgraph">
           <Subgraph
