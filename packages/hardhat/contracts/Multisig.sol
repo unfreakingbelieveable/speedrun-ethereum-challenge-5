@@ -5,6 +5,7 @@ error Multisig__VotingNotEnded();
 error Multisig__ProposalExpired();
 error Multisig__UserIsNotSigner();
 error Multisig__OnlyContract();
+error Multisig__AlreadyVoted();
 error Multisig__AlreadyExecuted();
 error Multisig__UserAlreadySigner();
 error Multisig__ProposalDidNotPass();
@@ -40,6 +41,7 @@ contract Multisig {
     Proposal[] public s_proposals;
     uint256 public s_expirationTimeout;
     mapping(address => bool) public s_isSigner;
+    mapping(uint256 => mapping(address => bool)) public s_hasVoted;
 
     constructor(
         address[] memory _signers,
@@ -166,6 +168,11 @@ contract Multisig {
             revert Multisig__ProposalExpired();
         }
 
+        if (s_hasVoted[_index][msg.sender]) {
+            revert Multisig__AlreadyVoted();
+        }
+
+        s_hasVoted[_index][msg.sender] = true;
         _proposal.voteYes.push(msg.sender);
 
         if(_proposal.voteYes.length >= s_minVotes) {
@@ -177,10 +184,6 @@ contract Multisig {
 
     function executeProposal(uint256 _index) external OnlySigners {
         Proposal memory _proposal = s_proposals[_index];
-
-        // if (_proposal.expiration > block.timestamp) {
-        //     revert Multisig__VotingNotEnded();
-        // }
 
         if (_proposal.voteYes.length < s_minVotes) {
             revert Multisig__ProposalDidNotPass();
